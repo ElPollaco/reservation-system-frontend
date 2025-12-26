@@ -1,3 +1,5 @@
+
+tak powinna wyglad aplikacja
 ```bash
 https://excalidraw.com/#json=CzkVsCmfNBD_CRtLodsMl,NWJDQnacPRKOpkEYHubcOw
 ```
