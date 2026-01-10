@@ -1,6 +1,7 @@
 @import './buttons.css';
 @import './empty-states.css';
 @import './loading.css';
+@import './form.css';
 
 html,
 body,
@@ -106,14 +107,14 @@ img, svg {
   --border-light: var(--gray-100);
 
   /* Spacing */
-  --spacing-xs: 0.25rem;   /* 4px */
-  --spacing-sm: 0.5rem;    /* 8px */
-  --spacing-md: 0.75rem;   /* 12px */
-  --spacing-lg: 1rem;      /* 16px */
-  --spacing-xl: 1.5rem;    /* 24px */
-  --spacing-2xl: 2rem;     /* 32px */
-  --spacing-3xl: 3rem;     /* 48px */
-  --spacing-4xl: 4rem;     /* 64px */
+  --spacing-xs: 0.25rem; /* 4px */
+  --spacing-sm: 0.5rem; /* 8px */
+  --spacing-md: 0.75rem; /* 12px */
+  --spacing-lg: 1rem; /* 16px */
+  --spacing-xl: 1.5rem; /* 24px */
+  --spacing-2xl: 2rem; /* 32px */
+  --spacing-3xl: 3rem; /* 48px */
+  --spacing-4xl: 4rem; /* 64px */
 
   /* Border Radius */
   --radius-sm: 4px;
@@ -129,14 +130,14 @@ img, svg {
   --shadow-xl: 0 10px 25px rgba(0, 0, 0, 0.1);
 
   /* Typography */
-  --font-size-xs: 0.7rem;    /* 11.2px */
-  --font-size-sm: 0.75rem;   /* 12px */
+  --font-size-xs: 0.7rem; /* 11.2px */
+  --font-size-sm: 0.75rem; /* 12px */
   --font-size-base: 0.875rem; /* 14px */
-  --font-size-md: 0.9rem;    /* 14.4px */
-  --font-size-lg: 1rem;      /* 16px */
-  --font-size-xl: 1.25rem;   /* 20px */
-  --font-size-2xl: 1.5rem;   /* 24px */
-  --font-size-3xl: 1.75rem;  /* 28px */
+  --font-size-md: 0.9rem; /* 14.4px */
+  --font-size-lg: 1rem; /* 16px */
+  --font-size-xl: 1.25rem; /* 20px */
+  --font-size-2xl: 1.5rem; /* 24px */
+  --font-size-3xl: 1.75rem; /* 28px */
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -372,36 +373,8 @@ p {
 }
 
 /* ----------------------------------------
-   6. LOADING & STATE INDICATORS
+   6. STATE INDICATORS
    ---------------------------------------- */
-
-/* Spinner */
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--gray-200);
-  border-top-color: var(--primary-500);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-.spinner-sm {
-  width: 20px;
-  height: 20px;
-  border-width: 2px;
-}
-
-.spinner-lg {
-  width: 60px;
-  height: 60px;
-  border-width: 4px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 
 /* Status Dots */
 .dot {
