@@ -1,18 +1,15 @@
-// src/components/CompanySelector/CompanySelector.jsx
-import { useState } from 'react';
-import { StaffRole, getRoleName } from '../../context/AuthContext';
+import {useState} from 'react';
 import styles from './CompanySelector.module.css';
+import RoleBadge from "../ui/RoleBadge/RoleBadge.jsx";
 
-const CompanySelector = ({ companies, onSelect }) => {
+const CompanySelector = ({companies, staffMember, onSelect}) => {
   const [selectedId, setSelectedId] = useState(null);
-  const [selectedRole, setSelectedRole] = useState(StaffRole.Manager);
-
   const handleSubmit = (e) => {
     e.preventDefault();
     const company = companies.find(c => c.id === selectedId);
     if (company) {
-      console.log('Selecting company:', company, 'with role:', selectedRole);
-      onSelect(company, selectedRole);
+      console.log('Selecting company:', company);
+      onSelect(company);
     }
   };
 
@@ -22,16 +19,18 @@ const CompanySelector = ({ companies, onSelect }) => {
 
   if (companies.length === 0) {
     return (
-      <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>
+      <div className="emptyState">
+        <div className="emptyIcon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
             <polyline points="9 22 9 12 15 12 15 22"></polyline>
           </svg>
         </div>
-        <h4 className={styles.emptyTitle}>No companies available</h4>
-        <p className={styles.emptyMessage}>
-          You are not assigned to any company. Please contact your administrator.
+        <h4 className="emptyTitle">No companies available</h4>
+        <p className="emptyMessage">
+          Welcome, {staffMember.firstName} {staffMember.lastName}
+          <br/>
+          You are not assigned to any company yet. Please contact your administrator to get access
         </p>
       </div>
     );
@@ -40,8 +39,15 @@ const CompanySelector = ({ companies, onSelect }) => {
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Choose Your Workspace</h2>
-      <p className={styles.subtitle}>Select the company you want to work with</p>
-
+      <p className={styles.subtitle}>
+        Welcome, {staffMember.firstName} {staffMember.lastName}
+        <br/>
+        Select the company you want to work with
+      </p>
+      <div className={styles.roleInfo}>
+        <span className={styles.roleLabel}>Your role:</span>
+        <RoleBadge role={staffMember.role}/>
+      </div>
       <form onSubmit={handleSubmit}>
         <div className={styles.companyList}>
           {companies.map((company) => (
@@ -58,6 +64,9 @@ const CompanySelector = ({ companies, onSelect }) => {
               </div>
               <div className={styles.companyInfo}>
                 <h3 className={styles.companyName}>{company.name}</h3>
+                {company.city && (
+                  <p className={styles.companyLocation}>{company.city}, {company.street}</p>
+                )}
               </div>
               <div className={styles.checkIcon}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -68,27 +77,9 @@ const CompanySelector = ({ companies, onSelect }) => {
             </div>
           ))}
         </div>
-
-        {/* Wybór roli */}
-        <div className={styles.roleSelector}>
-          <label htmlFor="role" className={styles.roleLabel}>
-            Select your role:
-          </label>
-          <select
-            id="role"
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(parseInt(e.target.value))}
-            className={styles.roleSelect}
-          >
-            <option value={StaffRole.Manager}>{getRoleName(StaffRole.Manager)}</option>
-            <option value={StaffRole.ReceptionEmployee}>{getRoleName(StaffRole.ReceptionEmployee)}</option>
-            <option value={StaffRole.Trainer}>{getRoleName(StaffRole.Trainer)}</option>
-          </select>
-        </div>
-
         <button
           type="submit"
-          className={styles.submitBtn}
+          className="submitBtn"
           disabled={selectedId === null}
         >
           Continue to Dashboard
