@@ -9,8 +9,8 @@
 }
 
 .loadingSpinner {
-  width: 40px;
-  height: 40px;
+  width: 20px;
+  height: 20px;
   border: 3px solid var(--gray-200);
   border-top-color: var(--primary-500);
   border-radius: 50%;
