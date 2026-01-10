@@ -1,31 +1,36 @@
-// src/pages/LoginPage.jsx
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import {useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {useAuth} from '../../context/AuthContext';
 import styles from './LoginPage.module.css';
+import {extractErrorMessage} from "../../utils/errorUtils.js";
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const {login} = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError(null);
     setLoading(true);
 
-    const result = await login(email, password);
+    try {
+      const result = await login(email, password);
 
-    setLoading(false);
-
-    if (result.success) {
-      navigate('/select-company');
-    } else {
-      setError(typeof result.error === 'string' ? result.error : JSON.stringify(result.error));
+      if (result.success) {
+        navigate('/select-company');
+      } else {
+        setError(extractErrorMessage(result.error));
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(extractErrorMessage(err));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -34,32 +39,19 @@ const LoginPage = () => {
       <div className={styles.container}>
         <div className={styles.card}>
           <div className={styles.header}>
-            <div className={styles.logo}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-            </div>
             <h1 className={styles.title}>Welcome back</h1>
             <p className={styles.subtitle}>Sign in to your staff account</p>
           </div>
 
           {error && (
             <div className={styles.alert}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="email">
+          <form onSubmit={handleSubmit} className="form">
+            <div className="formGroup">
+              <label className="formLabel" htmlFor="email">
                 Email
               </label>
               <div className={styles.inputWrapper}>
@@ -72,7 +64,7 @@ const LoginPage = () => {
                 <input
                   type="email"
                   id="email"
-                  className={styles.formInput}
+                  className="formInput"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
@@ -81,8 +73,8 @@ const LoginPage = () => {
               </div>
             </div>
 
-            <div className={styles.formGroup}>
-              <label className={styles.formLabel} htmlFor="password">
+            <div className="formGroup">
+              <label className="formLabel" htmlFor="password">
                 Password
               </label>
               <div className={styles.inputWrapper}>
@@ -95,7 +87,7 @@ const LoginPage = () => {
                 <input
                   type="password"
                   id="password"
-                  className={styles.formInput}
+                  className="formInput"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -106,12 +98,12 @@ const LoginPage = () => {
 
             <button
               type="submit"
-              className={styles.submitBtn}
+              className="submitBtn"
               disabled={loading}
             >
               {loading ? (
                 <>
-                  <div className={styles.spinner}></div>
+                  <div className="loadingSpinner"></div>
                   Signing in...
                 </>
               ) : (
@@ -127,14 +119,14 @@ const LoginPage = () => {
           </form>
 
           <div className={styles.footer}>
-            <p className={styles.footerText}>Are you a client?</p>
-            <Link to="/register" className={styles.footerLink}>
-              Register here
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
-            </Link>
+            <p className={styles.footerText}>
+              Need help? <br/>
+              Contact us at <a
+              href="mailto:support@planner.com"
+              className={styles.email}
+            >
+              support@planner.com</a>
+            </p>
           </div>
         </div>
       </div>
