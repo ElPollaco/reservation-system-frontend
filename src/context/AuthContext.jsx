@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect } from 'react';
-import { authApi, staffMemberCompanyApi } from '../api/api';
+import {createContext, useContext, useState, useEffect} from 'react';
+import {authApi, staffMemberCompanyApi} from '../api/api';
 
 const AuthContext = createContext(null);
 
@@ -19,21 +19,37 @@ export const StaffRole = {
   Trainer: 2,
 };
 
+// Mapowanie string z API na enum
+export const parseRole = (roleString) => {
+  if (typeof roleString === 'number')
+    return roleString;
+  const roleMap = {
+    'Manager': StaffRole.Manager,
+    'ReceptionEmployee': StaffRole.ReceptionEmployee,
+    'Trainer': StaffRole.Trainer,
+  };
+  return roleMap[roleString] ?? StaffRole.Trainer;
+};
+
 export const getRoleName = (role) => {
-  // Role może być stringiem lub liczbą
   if (typeof role === 'string') {
     return role;
   }
   switch (role) {
-    case StaffRole.Manager: return 'Manager';
-    case StaffRole.ReceptionEmployee: return 'ReceptionEmployee';
-    case StaffRole.Trainer: return 'Trainer';
-    default: return 'Unknown';
+    case StaffRole.Manager:
+      return 'Manager';
+    case StaffRole.ReceptionEmployee:
+      return 'Reception Employee';
+    case StaffRole.Trainer:
+      return 'Trainer';
+    default:
+      return 'Unknown';
   }
 };
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({children}) => {
   const [user, setUser] = useState(null);
+  const [staffMember, setStaffMember] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [companies, setCompanies] = useState([]);
@@ -46,6 +62,7 @@ export const AuthProvider = ({ children }) => {
       const savedUser = localStorage.getItem('user');
       const savedCompany = localStorage.getItem('selectedCompany');
       const savedRole = localStorage.getItem('userRole');
+      const savedStaffMember = localStorage.getItem('staffMember');
 
       if (savedToken && savedUser) {
         setToken(savedToken);
@@ -59,9 +76,24 @@ export const AuthProvider = ({ children }) => {
           setUserRole(parseInt(savedRole));
         }
 
+        if (savedStaffMember) {
+          setStaffMember(JSON.parse(savedStaffMember));
+        }
+
         try {
           const response = await staffMemberCompanyApi.getCompanies();
-          setCompanies(response.data);
+          const {staffMember: staff, companies: companiesList} = response.data;
+
+          setStaffMember(staff);
+          setCompanies(companiesList);
+          localStorage.setItem('staffMember', JSON.stringify(staff));
+
+          // Ustaw rolę z API jeśli nie była zapisana
+          if (savedRole === null && staff?.role) {
+            const parsedRole = parseRole(staff.role);
+            setUserRole(parsedRole);
+            localStorage.setItem('userRole', parsedRole.toString());
+          }
         } catch (error) {
           console.error('Failed to fetch companies:', error);
           logout();
@@ -75,8 +107,8 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await authApi.login({ email, password });
-      const { token: newToken, ...userData } = response.data;
+      const response = await authApi.login({email, password});
+      const {token: newToken, ...userData} = response.data;
 
       localStorage.setItem('token', newToken);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -84,11 +116,22 @@ export const AuthProvider = ({ children }) => {
       setToken(newToken);
       setUser(userData);
 
-      // Pobierz firmy użytkownika
+      // Pobierz firmy i dane użytkownika
       const companiesResponse = await staffMemberCompanyApi.getCompanies();
-      setCompanies(companiesResponse.data);
+      const {staffMember: staff, companies: companiesList} = companiesResponse.data;
 
-      return { success: true };
+      setStaffMember(staff);
+      setCompanies(companiesList);
+      localStorage.setItem('staffMember', JSON.stringify(staff));
+
+      // Ustaw rolę z API
+      if (staff?.role) {
+        const parsedRole = parseRole(staff.role);
+        setUserRole(parsedRole);
+        localStorage.setItem('userRole', parsedRole.toString());
+      }
+
+      return {success: true};
     } catch (error) {
       return {
         success: false,
@@ -102,25 +145,23 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     localStorage.removeItem('selectedCompany');
     localStorage.removeItem('userRole');
+    localStorage.removeItem('staffMember');
     setToken(null);
     setUser(null);
+    setStaffMember(null);
     setSelectedCompany(null);
     setCompanies([]);
     setUserRole(null);
   };
 
-  const selectCompany = (company, role) => {
+  const selectCompany = (company) => {
     setSelectedCompany(company);
-    setUserRole(role);
     localStorage.setItem('selectedCompany', JSON.stringify(company));
-    localStorage.setItem('userRole', role.toString());
   };
 
   const clearCompanySelection = () => {
     setSelectedCompany(null);
-    setUserRole(null);
     localStorage.removeItem('selectedCompany');
-    localStorage.removeItem('userRole');
   };
 
   const isManager = () => userRole === StaffRole.Manager;
@@ -129,6 +170,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    staffMember,
     token,
     selectedCompany,
     companies,
