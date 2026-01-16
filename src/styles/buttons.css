@@ -53,3 +53,26 @@
   width: 18px;
   height: 18px;
 }
+
+.btn {
+  display: inline-flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--gray-100);
+  color: var(--text-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn:hover {
+  background: var(--gray-200);
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+}

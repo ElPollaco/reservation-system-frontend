@@ -1,7 +1,3 @@
-/* ========================================
-   NAVBAR STYLES
-   ======================================== */
-
 .navbar {
   display: flex;
   align-items: center;
@@ -15,40 +11,10 @@
   z-index: var(--z-sticky);
 }
 
-/* Left Section */
 .navLeft {
   display: flex;
   align-items: center;
   gap: var(--spacing-lg);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  text-decoration: none;
-}
-
-.logoIcon {
-  width: 32px;
-  height: 32px;
-  background: var(--primary-500);
-  color: white;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logoIcon svg {
-  width: 18px;
-  height: 18px;
-}
-
-.logoText {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
 }
 
 .companyBadge {
@@ -71,119 +37,18 @@
   color: var(--text-muted);
 }
 
-.roleBadge {
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-}
-
-.roleManager {
-  background: var(--purple-50);
-  color: var(--purple-500);
-}
-
-.roleReception {
-  background: var(--warning-50);
-  color: var(--warning-600);
-}
-
-.roleTrainer {
-  background: var(--success-50);
-  color: var(--success-600);
-}
-
-/* Right Section */
 .navRight {
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
 }
 
-.userInfo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding-right: var(--spacing-md);
-  border-right: 1px solid var(--border-color);
-}
-
-.userAvatar {
-  width: 36px;
-  height: 36px;
-  background: var(--primary-50);
-  color: var(--primary-600);
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-}
-
-.userName {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
-}
-
-.userEmail {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-/* Buttons */
-.navBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--gray-100);
-  color: var(--text-primary);
-  border: none;
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.navBtn:hover {
-  background: var(--gray-200);
-}
-
-.navBtn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.logoutBtn {
-  background: var(--error-50);
-  color: var(--error-600);
-}
-
-.logoutBtn:hover {
-  background: var(--error-500);
-  color: white;
-}
-
-/* ----------------------------------------
-   RESPONSIVE
-   ---------------------------------------- */
 @media (max-width: 768px) {
   .navbar {
     padding: 0 var(--spacing-lg);
   }
 
-  .logoText {
-    display: none;
-  }
-
   .companyBadge {
-    display: none;
-  }
-
-  .userInfo {
     display: none;
   }
 
