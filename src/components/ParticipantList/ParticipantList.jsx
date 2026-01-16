@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { participantApi } from '../../api/api';
+import { participantApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import styles from './ParticipantList.module.css';
 

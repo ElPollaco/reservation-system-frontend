@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import {createContext, useContext, useState, useEffect} from 'react';
-import {authApi, staffMemberCompanyApi} from '../api/api';
+import {authApi, staffMemberCompanyApi} from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -135,7 +135,7 @@ export const AuthProvider = ({children}) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.message || error.response?.data || 'Login failed'
+        error: error.response?.data
       };
     }
   };

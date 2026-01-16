@@ -1,5 +1,5 @@
 import {useState, useEffect, useMemo} from 'react';
-import {eventScheduleApi, eventTypeApi} from '../../api/api';
+import {eventScheduleApi, eventTypeApi} from '../../services/api';
 import {useAuth} from '../../context/AuthContext';
 import CalendarHeader from './CalendarHeader';
 import CalendarGrid from './CalendarGrid';

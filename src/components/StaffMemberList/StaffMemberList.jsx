@@ -1,6 +1,6 @@
 // src/components/StaffMemberList/StaffMemberList.jsx
 import { useState, useEffect } from 'react';
-import { staffMemberApi } from '../../api/api';
+import { staffMemberApi } from '../../services/api';
 import { useAuth, StaffRole, getRoleName } from '../../context/AuthContext';
 import styles from './StaffMemberList.module.css';
 
