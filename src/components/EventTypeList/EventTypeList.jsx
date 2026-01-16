@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { eventTypeApi } from '../../api/api';
+import { eventTypeApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import styles from './EventTypeList.module.css';
 

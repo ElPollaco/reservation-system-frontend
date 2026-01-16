@@ -1,6 +1,6 @@
 // src/components/ReservationList/ReservationList.jsx
 import { useState, useEffect, useMemo } from 'react';
-import { reservationApi, eventScheduleApi, participantApi } from '../../api/api';
+import { reservationApi, eventScheduleApi, participantApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import styles from './ReservationList.module.css';
 

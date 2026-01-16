@@ -1,6 +1,6 @@
 // src/components/SpecializationList/SpecializationList.jsx
 import { useState, useEffect } from 'react';
-import { specializationApi } from '../../api/api';
+import { specializationApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import styles from './SpecializationList.module.css';
 

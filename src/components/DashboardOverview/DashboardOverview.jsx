@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 import {useAuth} from '../../context/AuthContext';
-import {reservationApi, participantApi, eventScheduleApi} from '../../api/api';
+import {reservationApi, participantApi, eventScheduleApi} from '../../services/api';
 import './DashboardOverview.css';
 
 const DashboardOverview = () => {

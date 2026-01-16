@@ -1,6 +1,6 @@
 // src/components/CompanySettings/CompanySettings.jsx
 import { useState, useEffect } from 'react';
-import { companyApi } from '../../api/api';
+import { companyApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import styles from './CompanySettings.module.css';
 

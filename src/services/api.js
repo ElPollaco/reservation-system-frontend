@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:5000';
+import {API_BASE_URL, StaffRole, LOCAL_STORAGE_KEYS} from "../constants/constants.js";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -11,10 +10,10 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    const token = localStorage.getItem(LOCAL_STORAGE_KEYS.TOKEN);
+    if (token)
       config.headers.Authorization = `Bearer ${token}`;
-    }
+
     return config;
   },
   (error) => {
@@ -25,10 +24,16 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
+    const isAuthEndpoint = error.config?.url?.includes('/api/Auth/');
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
+      Object.values(LOCAL_STORAGE_KEYS).forEach(key => {
+        localStorage.removeItem(key);
+      });
+
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
@@ -214,12 +219,6 @@ export const staffMemberCompanyApi = {
 
   removeFromCompany: (companyId, staffMemberId, targetCompanyId) =>
     apiClient.delete(`/api/staffMember/${companyId}/${staffMemberId}/companies/${targetCompanyId}`),
-};
-
-export const StaffRole = {
-  Manager: 0,
-  ReceptionEmployee: 1,
-  Trainer: 2,
 };
 
 export default {
