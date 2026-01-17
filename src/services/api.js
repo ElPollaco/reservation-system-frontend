@@ -153,8 +153,20 @@ export const reservationApi = {
 };
 
 export const specializationApi = {
-  getAll: (companyId, params = {}) =>
-    apiClient.get(`/api/Specialization/${companyId}`, {params}),
+  getAll: (companyId, params = {}) => {
+    const queryParams = {};
+
+    if (params.page !== undefined)
+      queryParams.Page = params.page + 1;
+
+    if (params.pageSize !== undefined)
+      queryParams.PageSize = params.pageSize;
+
+    if (params.search !== undefined && params.search.trim() !== '')
+      queryParams.Search = params.search.trim();
+
+    return apiClient.get(`/api/Specialization/${companyId}`, {params: queryParams});
+  },
 
   getById: (companyId, id) =>
     apiClient.get(`/api/Specialization/${companyId}/${id}`),
