@@ -1,7 +1,7 @@
 import {useNavigate} from 'react-router-dom';
 import {useAuth,} from '../../context/AuthContext';
 import styles from './Navbar.module.css';
-import RoleBadge from "../ui/RoleBadge/RoleBadge.jsx";
+import RoleBadge from "../common/RoleBadge/RoleBadge.jsx";
 
 const Navbar = () => {
   const {selectedCompany, logout, clearCompanySelection, userRole} = useAuth();
