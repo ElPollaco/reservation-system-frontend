@@ -1,4 +1,4 @@
-import {getRoleName, StaffRole} from '../../../context/AuthContext';
+import {getRoleName, StaffRole} from '../../../context/AuthContext.jsx';
 import styles from './RoleBadge.module.css';
 
 const RoleBadge = ({role}) => {
