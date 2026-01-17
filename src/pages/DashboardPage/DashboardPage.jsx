@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { useAuth } from '../../context/AuthContext.jsx';
+import {useState} from 'react';
+import {Routes, Route, useNavigate, useLocation} from 'react-router-dom';
+import {useAuth} from '../../context/AuthContext.jsx';
 import Navbar from '../../components/Navbar/Navbar.jsx';
 import DashboardOverview from '../../components/DashboardOverview/DashboardOverview.jsx';
 import StaffMemberList from '../../components/StaffMemberList/StaffMemberList.jsx';
@@ -9,65 +10,98 @@ import EventTypeList from '../../components/EventTypeList/EventTypeList.jsx';
 import ParticipantList from '../../components/ParticipantList/ParticipantList.jsx';
 import SpecializationList from '../../components/SpecializationList/SpecializationList.jsx';
 import CompanySettings from '../../components/CompanySettings/CompanySettings.jsx';
-import './DashboardPage.css';
+import styles from './DashboardPage.module.css';
 
 const DashboardPage = () => {
-  const { isManager } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const {isManager} = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const managerTabs = [
     {
       id: 'overview',
-      label: 'Panel główny',
+      path: '/dashboard/overview',
+      label: 'Dashboard',
       icon: 'dashboard',
       component: DashboardOverview
     },
     {
       id: 'reservations',
-      label: 'Rezerwacje',
+      path: '/dashboard/reservations',
+      label: 'Reservations',
       icon: 'calendar',
       component: ReservationList
     },
     {
       id: 'schedules',
-      label: 'Harmonogram',
+      path: '/dashboard/schedules',
+      label: 'Schedule',
       icon: 'clock',
       component: EventCalendar
     },
     {
       id: 'eventTypes',
-      label: 'Typy wydarzeń',
+      path: '/dashboard/eventTypes',
+      label: 'Event Types',
       icon: 'layers',
       component: EventTypeList
     },
     {
       id: 'participants',
-      label: 'Uczestnicy',
+      path: '/dashboard/participants',
+      label: 'Participants',
       icon: 'users',
       component: ParticipantList
     },
     {
       id: 'staff',
-      label: 'Personel',
+      path: '/dashboard/staff',
+      label: 'Staff',
       icon: 'user-plus',
       component: StaffMemberList
     },
     {
       id: 'specializations',
-      label: 'Specjalizacje',
+      path: '/dashboard/specializations',
+      label: 'Specializations',
       icon: 'check-circle',
       component: SpecializationList
     },
     {
       id: 'settings',
-      label: 'Ustawienia',
+      path: '/dashboard/settings',
+      label: 'Settings',
       icon: 'settings',
       component: CompanySettings
     },
   ];
 
-  // ... reszta kodu bez zmian
+  const availableTabs = isManager() ? managerTabs : [];
+
+  const getActiveTab = () => {
+    const currentPath = location.pathname;
+
+    const exactMatch = availableTabs.find(tab => tab.path === currentPath);
+    if (exactMatch)
+      return exactMatch.id;
+
+    const partialMatch = availableTabs.find(tab =>
+      tab.path !== '/dashboard' && currentPath.startsWith(tab.path)
+    );
+
+    if (partialMatch)
+      return partialMatch.id;
+
+    return 'overview';
+  };
+
+  const activeTab = getActiveTab();
+
+  const handleTabClick = (tab) => {
+    navigate(tab.path);
+  };
+
   const getIcon = (iconName) => {
     const icons = {
       dashboard: (
@@ -124,66 +158,85 @@ const DashboardPage = () => {
       settings: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
       ),
     };
     return icons[iconName] || icons.dashboard;
   };
 
-  const availableTabs = isManager() ? managerTabs : [];
-  const ActiveComponent = availableTabs.find(tab => tab.id === activeTab)?.component;
+  const NonManagerView = () => (
+    <div className={styles['dashboard-empty']}>
+      <h2>Welcome to the panel!</h2>
+      <p>Select an option from the menu to get started</p>
+      <p>Your role does not yet have access to management features</p>
+    </div>
+  );
 
   return (
-    <div className="dashboard-layout">
+    <div className={styles['dashboard-layout']}>
       <Navbar />
 
-      <div className="dashboard-container">
-        <aside className={`dashboard-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-          <div className="sidebar-header">
-            {!sidebarCollapsed && <span className="sidebar-title">Menu</span>}
+      <div className={styles['dashboard-container']}>
+        <aside className={`${styles['dashboard-sidebar']} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+          <div className={styles['sidebar-header']}>
+            {!sidebarCollapsed && <span className={styles['sidebar-title']}>Menu</span>}
             <button
-              className="sidebar-toggle"
+              className={styles['sidebar-toggle']}
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              title={sidebarCollapsed ? 'Rozwiń menu' : 'Zwiń menu'}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 {sidebarCollapsed ? (
-                  <polyline points="9 18 15 12 9 6"/>
+                  <polyline points="9 18 15 12 9 6" />
                 ) : (
-                  <polyline points="15 18 9 12 15 6"/>
+                  <polyline points="15 18 9 12 15 6" />
                 )}
               </svg>
             </button>
           </div>
 
-          <nav className="sidebar-nav">
+          <nav className={styles['sidebar-nav']}>
             {availableTabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`sidebar-nav-item ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => handleTabClick(tab)}
+                className={`${styles['sidebar-nav-item']} ${activeTab === tab.id ? styles.active : ''}`}
                 title={sidebarCollapsed ? tab.label : undefined}
               >
-                <span className="nav-icon">{getIcon(tab.icon)}</span>
-                {!sidebarCollapsed && <span className="nav-label">{tab.label}</span>}
+                <span className={styles['nav-icon']}>{getIcon(tab.icon)}</span>
+                {!sidebarCollapsed && <span className={styles['nav-label']}>{tab.label}</span>}
               </button>
             ))}
           </nav>
         </aside>
 
-        <main className="dashboard-main">
-          <div className="dashboard-content">
-            {ActiveComponent ? (
-              <ActiveComponent />
+        <main className={styles['dashboard-main']}>
+          <div className={styles['dashboard-content']}>
+            {isManager() ? (
+              <Routes>
+                <Route index element={<DashboardOverview />} />
+                <Route path="overview" element={<DashboardOverview />} />
+                <Route path="reservations" element={<ReservationList />} />
+                <Route path="schedules" element={<EventCalendar />} />
+                <Route path="eventTypes" element={<EventTypeList />} />
+                <Route path="participants" element={<ParticipantList />} />
+                <Route path="staff" element={<StaffMemberList />} />
+                <Route path="specializations" element={<SpecializationList />} />
+                <Route path="settings" element={<CompanySettings />} />
+                <Route
+                  path="*"
+                  element={
+                    <div className={styles['dashboard-empty']}>
+                      <h2>Page Not Found</h2>
+                      <p>Please choose an option from the menu</p>
+                    </div>
+                  }
+                />
+              </Routes>
             ) : (
-              <div className="dashboard-empty">
-                <h2>Witaj w panelu!</h2>
-                <p>Wybierz opcję z menu, aby rozpocząć.</p>
-                {!isManager() && (
-                  <p>Twoja rola nie ma jeszcze dostępu do funkcji zarządzania.</p>
-                )}
-              </div>
+              // eslint-disable-next-line react-hooks/static-components
+              <NonManagerView />
             )}
           </div>
         </main>
