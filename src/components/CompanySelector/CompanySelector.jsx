@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import styles from './CompanySelector.module.css';
-import RoleBadge from "../ui/RoleBadge/RoleBadge.jsx";
+import RoleBadge from "../common/RoleBadge/RoleBadge.jsx";
 
 const CompanySelector = ({companies, staffMember, onSelect}) => {
   const [selectedId, setSelectedId] = useState(null);
