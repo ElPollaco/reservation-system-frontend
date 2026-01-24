@@ -79,8 +79,23 @@ export const companyApi = {
 };
 
 export const eventScheduleApi = {
-  getAll: (companyId, params = {}) =>
-    apiClient.get(`/api/EventSchedule/${companyId}`, {params}),
+  getAll: (companyId, params = {}) => {
+    const queryParams = {};
+
+    if (params.page !== undefined)
+      queryParams.Page = params.page;
+
+    if (params.pageSize !== undefined)
+      queryParams.PageSize = params.pageSize;
+
+    if (params.search !== undefined && params.search.trim() !== '')
+      queryParams.Search = params.search.trim();
+
+    if (params.eventTypeId !== undefined && params.eventTypeId !== '')
+      queryParams.EventTypeId = params.eventTypeId;
+
+    return apiClient.get(`/api/EventSchedule/${companyId}`, {params: queryParams});
+  },
 
   getById: (companyId, id) =>
     apiClient.get(`/api/EventSchedule/${companyId}/${id}`),
