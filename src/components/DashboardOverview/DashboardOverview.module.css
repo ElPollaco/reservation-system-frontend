@@ -262,7 +262,6 @@
   color: var(--text-muted);
 }
 
-/* Section */
 .section {
   background: var(--bg-primary);
   border: 1px solid var(--border-color);
