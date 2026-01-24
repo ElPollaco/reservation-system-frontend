@@ -1,15 +1,9 @@
-/* ========================================
-   COMPANY SETTINGS STYLES
-   ======================================== */
-
-/* Main Container */
 .container {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xl);
 }
 
-/* Loading State */
 .loading {
   display: flex;
   flex-direction: column;
@@ -39,9 +33,6 @@
   }
 }
 
-/* ----------------------------------------
-   SECTION CARD
-   ---------------------------------------- */
 .section {
   background: var(--bg-primary);
   border-radius: var(--radius-xl);
@@ -129,9 +120,6 @@
   flex-shrink: 0;
 }
 
-/* ----------------------------------------
-   EDIT BUTTON
-   ---------------------------------------- */
 .editBtn {
   display: inline-flex;
   align-items: center;
@@ -157,9 +145,6 @@
   height: 16px;
 }
 
-/* ----------------------------------------
-   DETAILS GRID
-   ---------------------------------------- */
 .detailsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -170,10 +155,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
-}
-
-.detailItemFull {
-  grid-column: 1 / -1;
 }
 
 .detailLabel {
@@ -194,7 +175,6 @@
   color: var(--text-muted);
 }
 
-/* Status Badges */
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -216,9 +196,6 @@
   color: var(--text-secondary);
 }
 
-/* ----------------------------------------
-   FORM
-   ---------------------------------------- */
 .form {
   display: flex;
   flex-direction: column;
@@ -281,7 +258,6 @@
   margin-top: var(--spacing-xs);
 }
 
-/* Form Actions */
 .formActions {
   display: flex;
   gap: var(--spacing-md);
@@ -328,9 +304,6 @@
   background: var(--gray-200);
 }
 
-/* ----------------------------------------
-   BREAK TIMES
-   ---------------------------------------- */
 .breakTimesGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -386,9 +359,6 @@
   color: var(--text-secondary);
 }
 
-/* ----------------------------------------
-   RECEPTION TOGGLE
-   ---------------------------------------- */
 .receptionSection {
   margin-top: var(--spacing-xl);
   padding-top: var(--spacing-xl);
@@ -478,9 +448,6 @@
   background: var(--gray-300);
 }
 
-/* ----------------------------------------
-   RESPONSIVE
-   ---------------------------------------- */
 @media (max-width: 768px) {
   .sectionHeader {
     flex-direction: column;

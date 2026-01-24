@@ -11,10 +11,8 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
           <Route path="/login" element={<LoginPage/>}/>
 
-          {/* Protected Routes */}
           <Route
             path="/select-company"
             element={
@@ -33,7 +31,6 @@ function App() {
             }
           />
 
-          {/* Default Route */}
           <Route path="/" element={<Navigate to="/login" replace/>}/>
           <Route path="*" element={<Navigate to="/login" replace/>}/>
         </Routes>
