@@ -1,8 +1,3 @@
-/* ========================================
-   EVENT TYPE LIST STYLES
-   ======================================== */
-
-/* Main Container */
 .container {
   background: var(--bg-primary);
   border-radius: var(--radius-xl);
@@ -11,7 +6,6 @@
   overflow: hidden;
 }
 
-/* Loading State */
 .loading {
   display: flex;
   flex-direction: column;
@@ -37,9 +31,6 @@
   }
 }
 
-/* ----------------------------------------
-   HEADER
-   ---------------------------------------- */
 .header {
   display: flex;
   align-items: center;
@@ -47,6 +38,30 @@
   padding: var(--spacing-xl);
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-primary);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.typeCount {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  background: var(--gray-100);
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
+}
+
+.contentArea {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.required {
+  color: #ef4444;
 }
 
 .title {
@@ -84,9 +99,6 @@
   background: var(--gray-200);
 }
 
-/* ----------------------------------------
-   ERROR MESSAGE
-   ---------------------------------------- */
 .errorMessage {
   display: flex;
   align-items: center;
@@ -119,9 +131,6 @@
   background: var(--error-600);
 }
 
-/* ----------------------------------------
-   FORM
-   ---------------------------------------- */
 .formWrapper {
   padding: var(--spacing-xl);
   background: var(--gray-50);
@@ -253,9 +262,6 @@
   background: var(--gray-200);
 }
 
-/* ----------------------------------------
-   TABLE
-   ---------------------------------------- */
 .tableWrapper {
   overflow-x: auto;
 }
@@ -301,7 +307,6 @@
   vertical-align: middle;
 }
 
-/* Table Cell Variants */
 .cellName {
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
@@ -345,7 +350,6 @@
   font-weight: var(--font-weight-medium);
 }
 
-/* Actions Cell */
 .actionsCell {
   display: flex;
   gap: var(--spacing-sm);
@@ -386,9 +390,6 @@
   color: white;
 }
 
-/* ----------------------------------------
-   EMPTY STATE
-   ---------------------------------------- */
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -423,9 +424,6 @@
   margin: 0;
 }
 
-/* ----------------------------------------
-   RESPONSIVE
-   ---------------------------------------- */
 @media (max-width: 1024px) {
   .cellDescription {
     max-width: 150px;
@@ -457,7 +455,6 @@
     padding: var(--spacing-sm) var(--spacing-md);
   }
 
-  /* Hide some columns on mobile */
   .tableHeader th:nth-child(2),
   .tableBody td:nth-child(2) {
     display: none;
@@ -483,7 +480,6 @@
     justify-content: center;
   }
 
-  /* Hide more columns on smallest screens */
   .tableHeader th:nth-child(5),
   .tableBody td:nth-child(5),
   .tableHeader th:nth-child(6),

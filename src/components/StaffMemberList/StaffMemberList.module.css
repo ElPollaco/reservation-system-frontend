@@ -1,8 +1,3 @@
-/* ========================================
-   STAFF MEMBER LIST STYLES
-   ======================================== */
-
-/* Main Container */
 .container {
   background: var(--bg-primary);
   border-radius: var(--radius-xl);
@@ -11,7 +6,6 @@
   overflow: hidden;
 }
 
-/* Loading State */
 .loading {
   display: flex;
   flex-direction: column;
@@ -37,9 +31,6 @@
   }
 }
 
-/* ----------------------------------------
-   HEADER
-   ---------------------------------------- */
 .header {
   display: flex;
   align-items: center;
@@ -51,7 +42,7 @@
 
 .headerLeft {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--spacing-lg);
 }
 
@@ -98,9 +89,6 @@
   background: var(--gray-200);
 }
 
-/* ----------------------------------------
-   ERROR MESSAGE
-   ---------------------------------------- */
 .errorMessage {
   display: flex;
   align-items: center;
@@ -139,9 +127,6 @@
   background: var(--error-600);
 }
 
-/* ----------------------------------------
-   FORM
-   ---------------------------------------- */
 .formWrapper {
   padding: var(--spacing-xl);
   background: var(--gray-50);
@@ -233,7 +218,6 @@
   margin-top: var(--spacing-xs);
 }
 
-/* Form Actions */
 .formActions {
   display: flex;
   gap: var(--spacing-md);
@@ -280,9 +264,6 @@
   background: var(--gray-200);
 }
 
-/* ----------------------------------------
-   TABLE
-   ---------------------------------------- */
 .tableWrapper {
   overflow-x: auto;
 }
@@ -328,7 +309,6 @@
   vertical-align: middle;
 }
 
-/* Table Cell Variants */
 .cellName {
   display: flex;
   align-items: center;
@@ -396,33 +376,6 @@
   flex-shrink: 0;
 }
 
-/* Role Badge */
-.roleBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
-.roleManager {
-  background: var(--purple-50);
-  color: var(--purple-500);
-}
-
-.roleReception {
-  background: var(--warning-50);
-  color: var(--warning-600);
-}
-
-.roleTrainer {
-  background: var(--success-50);
-  color: var(--success-600);
-}
-
-/* Specializations */
 .specializations {
   display: flex;
   flex-wrap: wrap;
@@ -445,7 +398,6 @@
   font-size: var(--font-size-sm);
 }
 
-/* Actions Cell */
 .actionsCell {
   display: flex;
   gap: var(--spacing-sm);
@@ -486,9 +438,6 @@
   color: white;
 }
 
-/* ----------------------------------------
-   EMPTY STATE
-   ---------------------------------------- */
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -542,9 +491,6 @@
   background: var(--primary-600);
 }
 
-/* ----------------------------------------
-   RESPONSIVE
-   ---------------------------------------- */
 @media (max-width: 1024px) {
   .formRow3 {
     grid-template-columns: repeat(2, 1fr);
@@ -587,7 +533,6 @@
     padding: var(--spacing-sm) var(--spacing-md);
   }
 
-  /* Hide specializations column */
   .tableHeader th:nth-child(5),
   .tableBody td:nth-child(5) {
     display: none;
@@ -619,7 +564,6 @@
     justify-content: center;
   }
 
-  /* Hide more columns */
   .tableHeader th:nth-child(3),
   .tableBody td:nth-child(3),
   .tableHeader th:nth-child(4),

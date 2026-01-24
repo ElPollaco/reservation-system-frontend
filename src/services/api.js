@@ -111,8 +111,20 @@ export const eventScheduleApi = {
 };
 
 export const eventTypeApi = {
-  getAll: (companyId, params = {}) =>
-    apiClient.get(`/api/EventType/${companyId}`, {params}),
+  getAll: (companyId, params = {}) => {
+    const queryParams = {};
+
+    if (params.page !== undefined)
+      queryParams.Page = params.page + 1;
+
+    if (params.pageSize !== undefined)
+      queryParams.PageSize = params.pageSize;
+
+    if (params.search !== undefined && params.search.trim() !== '')
+      queryParams.Search = params.search.trim();
+
+    return apiClient.get(`/api/EventType/${companyId}`, {params: queryParams});
+  },
 
   getById: (companyId, id) =>
     apiClient.get(`/api/EventType/${companyId}/${id}`),
@@ -128,8 +140,20 @@ export const eventTypeApi = {
 };
 
 export const participantApi = {
-  getAll: (companyId, params = {}) =>
-    apiClient.get(`/api/Participant/${companyId}`, {params}),
+  getAll: (companyId, params = {}) => {
+    const queryParams = {};
+
+    if (params.page !== undefined)
+      queryParams.Page = params.page + 1;
+
+    if (params.pageSize !== undefined)
+      queryParams.PageSize = params.pageSize;
+
+    if (params.search !== undefined && params.search.trim() !== '')
+      queryParams.Search = params.search.trim();
+
+    return apiClient.get(`/api/Participant/${companyId}`, {params: queryParams});
+  },
 
   getById: (companyId, participantId) =>
     apiClient.get(`/api/Participant/${companyId}/${participantId}`),
@@ -197,8 +221,20 @@ export const specializationApi = {
 };
 
 export const staffMemberApi = {
-  getAll: (companyId, params = {}) =>
-    apiClient.get(`/api/StaffMember/${companyId}`, {params}),
+  getAll: (companyId, params = {}) => {
+    const queryParams = {};
+
+    if (params.page !== undefined)
+      queryParams.Page = params.page + 1;
+
+    if (params.pageSize !== undefined)
+      queryParams.PageSize = params.pageSize;
+
+    if (params.search !== undefined && params.search.trim() !== '')
+      queryParams.Search = params.search.trim();
+
+    return apiClient.get(`/api/StaffMember/${companyId}`, {params: queryParams});
+  },
 
   getById: (companyId, staffMemberId) =>
     apiClient.get(`/api/StaffMember/${companyId}/${staffMemberId}`),

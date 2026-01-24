@@ -21,7 +21,7 @@
 
 .headerLeft {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--spacing-lg, 1rem);
 }
 
