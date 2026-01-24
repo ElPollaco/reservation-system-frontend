@@ -1,4 +1,3 @@
-// src/context/AuthContext.jsx
 import {createContext, useContext, useState, useEffect} from 'react';
 import {authApi, staffMemberCompanyApi} from '../services/api';
 
@@ -12,14 +11,12 @@ export const useAuth = () => {
   return context;
 };
 
-// StaffRole enum zgodnie z API
 export const StaffRole = {
   Manager: 0,
   ReceptionEmployee: 1,
   Trainer: 2,
 };
 
-// Mapowanie string z API na enum
 export const parseRole = (roleString) => {
   if (typeof roleString === 'number')
     return roleString;
@@ -88,7 +85,6 @@ export const AuthProvider = ({children}) => {
           setCompanies(companiesList);
           localStorage.setItem('staffMember', JSON.stringify(staff));
 
-          // Ustaw rolę z API jeśli nie była zapisana
           if (savedRole === null && staff?.role) {
             const parsedRole = parseRole(staff.role);
             setUserRole(parsedRole);
@@ -116,7 +112,6 @@ export const AuthProvider = ({children}) => {
       setToken(newToken);
       setUser(userData);
 
-      // Pobierz firmy i dane użytkownika
       const companiesResponse = await staffMemberCompanyApi.getCompanies();
       const {staffMember: staff, companies: companiesList} = companiesResponse.data;
 
@@ -124,7 +119,6 @@ export const AuthProvider = ({children}) => {
       setCompanies(companiesList);
       localStorage.setItem('staffMember', JSON.stringify(staff));
 
-      // Ustaw rolę z API
       if (staff?.role) {
         const parsedRole = parseRole(staff.role);
         setUserRole(parsedRole);
