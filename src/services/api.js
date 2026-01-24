@@ -83,7 +83,7 @@ export const eventScheduleApi = {
     const queryParams = {};
 
     if (params.page !== undefined)
-      queryParams.Page = params.page;
+      queryParams.Page = params.page + 1;
 
     if (params.pageSize !== undefined)
       queryParams.PageSize = params.pageSize;
@@ -169,8 +169,20 @@ export const participantApi = {
 };
 
 export const reservationApi = {
-  getAll: (companyId, params = {}) =>
-    apiClient.get(`/api/Reservation/${companyId}`, {params}),
+  getAll: (companyId, params = {}) => {
+    const queryParams = {};
+
+    if (params.page !== undefined)
+      queryParams.Page = params.page + 1;
+
+    if (params.pageSize !== undefined)
+      queryParams.PageSize = params.pageSize;
+
+    if (params.search !== undefined && params.search.trim() !== '')
+      queryParams.Search = params.search.trim();
+
+    return apiClient.get(`/api/Reservation/${companyId}`, {params: queryParams});
+  },
 
   getById: (companyId, id) =>
     apiClient.get(`/api/Reservation/${companyId}/${id}`),

@@ -147,7 +147,6 @@ const EventCalendar = () => {
     }
   }, [editParam, dayParam, schedules]);
 
-  // Fetch event types
   const fetchEventTypes = useCallback(async () => {
     if (!companyId) return;
     try {
@@ -166,7 +165,7 @@ const EventCalendar = () => {
       setError(null);
 
       const params = {
-        page: 1,
+        page: 0,
         pageSize: 400
       };
 
