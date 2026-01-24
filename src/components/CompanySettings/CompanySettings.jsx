@@ -1,11 +1,10 @@
-// src/components/CompanySettings/CompanySettings.jsx
-import { useState, useEffect } from 'react';
-import { companyApi } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
+import {useState, useEffect} from 'react';
+import {companyApi} from '../../services/api';
+import {useAuth} from '../../context/AuthContext';
 import styles from './CompanySettings.module.css';
 
 const CompanySettings = () => {
-  const { selectedCompany, selectCompany, userRole } = useAuth();
+  const {selectedCompany, selectCompany, userRole} = useAuth();
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -66,7 +65,7 @@ const CompanySettings = () => {
       await companyApi.update(companyId, formData);
       fetchCompany();
       setEditing(false);
-      selectCompany({ ...selectedCompany, ...formData }, userRole);
+      selectCompany({...selectedCompany, ...formData}, userRole);
     } catch (err) {
       setError(err.response?.data?.message || err.response?.data || err.message);
     }
@@ -184,7 +183,7 @@ const CompanySettings = () => {
                   className={styles.formInput}
                   placeholder="Enter company name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
                   required
                 />
               </div>
@@ -199,7 +198,7 @@ const CompanySettings = () => {
                     className={styles.formInput}
                     placeholder="Enter tax code"
                     value={formData.taxCode}
-                    onChange={(e) => setFormData({ ...formData, taxCode: e.target.value })}
+                    onChange={(e) => setFormData({...formData, taxCode: e.target.value})}
                     required
                   />
                 </div>
@@ -212,7 +211,7 @@ const CompanySettings = () => {
                     className={styles.formInput}
                     placeholder="company@example.com"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
                     required
                   />
                 </div>
@@ -227,7 +226,7 @@ const CompanySettings = () => {
                   className={styles.formInput}
                   placeholder="Enter street address"
                   value={formData.street}
-                  onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                  onChange={(e) => setFormData({...formData, street: e.target.value})}
                   required
                 />
               </div>
@@ -242,7 +241,7 @@ const CompanySettings = () => {
                     className={styles.formInput}
                     placeholder="Enter city"
                     value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                    onChange={(e) => setFormData({...formData, city: e.target.value})}
                     required
                   />
                 </div>
@@ -255,7 +254,7 @@ const CompanySettings = () => {
                     className={styles.formInput}
                     placeholder="00-000"
                     value={formData.postalCode}
-                    onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                    onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
                     required
                   />
                 </div>
@@ -270,7 +269,7 @@ const CompanySettings = () => {
                   className={styles.formInput}
                   placeholder="+48 000 000 000"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   required
                 />
               </div>
@@ -306,7 +305,7 @@ const CompanySettings = () => {
                   <span className={styles.detailLabel}>Phone</span>
                   <span className={styles.detailValue}>{companyData.phone}</span>
                 </div>
-                <div className={styles.detailItemFull}>
+                <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Address</span>
                   <span className={styles.detailValue}>
                     {companyData.street}, {companyData.postalCode} {companyData.city}
@@ -314,23 +313,24 @@ const CompanySettings = () => {
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Parent Node</span>
-                  <span className={`${styles.statusBadge} ${companyData.isParentNode ? styles.statusBadgeYes : styles.statusBadgeNo}`}>
+                  <span
+                    className={`${styles.statusBadge} ${companyData.isParentNode ? styles.statusBadgeYes : styles.statusBadgeNo}`}>
                     {companyData.isParentNode ? 'Yes' : 'No'}
                   </span>
                 </div>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Created</span>
-                  <span className={`${styles.detailValue} ${styles.detailValueMuted}`}>
+                  <span className={styles.detailValue}>
                     {formatDateTime(companyData.createdAt)}
                   </span>
                 </div>
               </div>
 
-              {/* Reception Toggle */}
               <div className={styles.receptionSection}>
                 <div className={styles.receptionCard}>
                   <div className={styles.receptionInfo}>
-                    <div className={`${styles.receptionIcon} ${companyData.isReception ? styles.receptionIconActive : styles.receptionIconInactive}`}>
+                    <div
+                      className={`${styles.receptionIcon} ${companyData.isReception ? styles.receptionIconActive : styles.receptionIconInactive}`}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                         <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
@@ -396,7 +396,7 @@ const CompanySettings = () => {
                     type="number"
                     className={styles.formInput}
                     value={breakTimesData.breakTimeStaff}
-                    onChange={(e) => setBreakTimesData({ ...breakTimesData, breakTimeStaff: e.target.value })}
+                    onChange={(e) => setBreakTimesData({...breakTimesData, breakTimeStaff: e.target.value})}
                     min="0"
                     required
                   />
@@ -412,7 +412,7 @@ const CompanySettings = () => {
                     type="number"
                     className={styles.formInput}
                     value={breakTimesData.breakTimeParticipants}
-                    onChange={(e) => setBreakTimesData({ ...breakTimesData, breakTimeParticipants: e.target.value })}
+                    onChange={(e) => setBreakTimesData({...breakTimesData, breakTimeParticipants: e.target.value})}
                     min="0"
                     required
                   />
