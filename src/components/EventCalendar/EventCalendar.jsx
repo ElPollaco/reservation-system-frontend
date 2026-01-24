@@ -1,16 +1,34 @@
-import {useState, useEffect, useMemo} from 'react';
+import {useState, useEffect, useMemo, useCallback} from 'react';
+import {useSearchParams} from 'react-router-dom';
 import {eventScheduleApi, eventTypeApi} from '../../services/api';
 import {useAuth} from '../../context/AuthContext';
-import CalendarHeader from './CalendarHeader';
-import CalendarGrid from './CalendarGrid';
-import EventModal from './EventModal';
+import CalendarHeader from './components/CalendarHeader/CalendarHeader.jsx';
+import CalendarGrid from './components/CalendarGrid/CalendarGrid.jsx';
+import EventModal from './components/EventModal/EventModal.jsx';
+import ErrorModal from '../common/ErrorModal/ErrorModal';
 import styles from './EventCalendar.module.css';
 
 const EventCalendar = () => {
   const {selectedCompany} = useAuth();
   const companyId = selectedCompany?.id;
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const monthParam = searchParams.get('month');
+  const eventTypeParam = searchParams.get('eventType') || '';
+  const editParam = searchParams.get('edit');
+  const dayParam = searchParams.get('day');
+
+  const getInitialDate = useCallback(() => {
+    if (monthParam) {
+      const [year, month] = monthParam.split('-').map(Number);
+      if (year && month && month >= 1 && month <= 12) {
+        return new Date(year, month - 1, 1);
+      }
+    }
+    return new Date();
+  }, [monthParam]);
+
+  const [currentDate, setCurrentDate] = useState(getInitialDate);
   const [schedules, setSchedules] = useState([]);
   const [eventTypes, setEventTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,46 +38,178 @@ const EventCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const fetchData = async () => {
+  const formatMonthKey = (date) => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const formatDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  useEffect(() => {
+    if (monthParam) {
+      const [year, month] = monthParam.split('-').map(Number);
+      if (year && month && month >= 1 && month <= 12) {
+        const newDate = new Date(year, month - 1, 1);
+        if (formatMonthKey(newDate) !== formatMonthKey(currentDate)) {
+          setCurrentDate(newDate);
+        }
+      }
+    }
+  }, [monthParam]);
+
+  const updateMonth = useCallback((newDate) => {
+    setCurrentDate(newDate);
+    const newMonthKey = formatMonthKey(newDate);
+
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
+      params.set('month', newMonthKey);
+      return params;
+    }, {replace: true});
+  }, [setSearchParams]);
+
+  const handleEventTypeFilter = useCallback((eventTypeId) => {
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
+      if (eventTypeId) {
+        params.set('eventType', eventTypeId);
+      } else {
+        params.delete('eventType');
+      }
+      return params;
+    }, {replace: true});
+  }, [setSearchParams]);
+
+  const openEditModal = useCallback((event) => {
+    setSelectedEvent(event);
+    setSelectedDate(new Date(event.startTime));
+    setModalOpen(true);
+
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
+      params.set('edit', event.id);
+      params.delete('day');
+      return params;
+    }, {replace: true});
+  }, [setSearchParams]);
+
+  const openAddModal = useCallback((date) => {
+    setSelectedDate(date);
+    setSelectedEvent(null);
+    setModalOpen(true);
+
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
+      params.set('day', formatDateKey(date));
+      params.delete('edit');
+      return params;
+    }, {replace: true});
+  }, [setSearchParams]);
+
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+    setSelectedEvent(null);
+    setSelectedDate(null);
+
+    setSearchParams(prev => {
+      const params = new URLSearchParams(prev);
+      params.delete('edit');
+      params.delete('day');
+      return params;
+    }, {replace: true});
+  }, [setSearchParams]);
+
+  useEffect(() => {
+    if (editParam && schedules.length > 0) {
+      const event = schedules.find(s => s.id === editParam);
+      if (event) {
+        setSelectedEvent(event);
+        setSelectedDate(new Date(event.startTime));
+        setModalOpen(true);
+      }
+    } else if (dayParam && !editParam) {
+      const [year, month, day] = dayParam.split('-').map(Number);
+      if (year && month && day) {
+        setSelectedDate(new Date(year, month - 1, day));
+        setSelectedEvent(null);
+        setModalOpen(true);
+      }
+    } else if (!editParam && !dayParam) {
+      if (modalOpen) {
+        setModalOpen(false);
+        setSelectedEvent(null);
+        setSelectedDate(null);
+      }
+    }
+  }, [editParam, dayParam, schedules]);
+
+  // Fetch event types
+  const fetchEventTypes = useCallback(async () => {
+    if (!companyId) return;
+    try {
+      const response = await eventTypeApi.getAll(companyId);
+      setEventTypes(response.data.items || []);
+    } catch (err) {
+      console.error('Error fetching event types:', err);
+    }
+  }, [companyId]);
+
+  const fetchSchedules = useCallback(async () => {
     if (!companyId) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      const [schedulesRes, eventTypesRes] = await Promise.all([
-        eventScheduleApi.getAll(companyId, {Page: 1, PageSize: 100}),
-        eventTypeApi.getAll(companyId)
-      ]);
+      const params = {
+        page: 1,
+        pageSize: 400
+      };
 
-      const schedulesData = schedulesRes.data.items || [];
+      if (eventTypeParam) {
+        params.eventTypeId = eventTypeParam;
+      }
 
-      setSchedules(schedulesData);
-      setEventTypes(eventTypesRes.data.items || []);
+      const response = await eventScheduleApi.getAll(companyId, params);
+      setSchedules(response.data.items || []);
     } catch (err) {
-      console.error('❌ Error:', err);
+      console.error('Error:', err);
       setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId, eventTypeParam]);
 
   useEffect(() => {
-    fetchData();
-  }, [companyId]);
+    fetchEventTypes();
+  }, [fetchEventTypes]);
 
-  // Grupowanie wydarzeń po datach
+  useEffect(() => {
+    fetchSchedules();
+  }, [fetchSchedules]);
+
+  useEffect(() => {
+    if (!monthParam) {
+      const currentMonthKey = formatMonthKey(new Date());
+      setSearchParams(prev => {
+        const params = new URLSearchParams(prev);
+        params.set('month', currentMonthKey);
+        return params;
+      }, {replace: true});
+    }
+  }, []);
+
   const eventsByDate = useMemo(() => {
     const grouped = {};
 
     schedules.forEach(schedule => {
       if (!schedule.startTime) return;
 
-      const dateObj = new Date(schedule.startTime);
-      const year = dateObj.getFullYear();
-      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const day = String(dateObj.getDate()).padStart(2, '0');
-      const dateKey = `${year}-${month}-${day}`;
+      const dateKey = formatDateKey(new Date(schedule.startTime));
 
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
@@ -76,40 +226,40 @@ const EventCalendar = () => {
     return grouped;
   }, [schedules]);
 
-  // ✅ Lista dat z wydarzeniami (do przekazania do headera)
   const eventDates = useMemo(() => Object.keys(eventsByDate), [eventsByDate]);
 
-  // ✅ Liczba wydarzeń w aktualnym miesiącu
   const eventsInCurrentMonth = useMemo(() => {
-    const currentMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-    return eventDates.filter(date => date.startsWith(currentMonthKey)).reduce((sum, date) => {
-      return sum + (eventsByDate[date]?.length || 0);
-    }, 0);
+    const currentMonthKey = formatMonthKey(currentDate);
+    return eventDates
+      .filter(date => date.startsWith(currentMonthKey))
+      .reduce((sum, date) => sum + (eventsByDate[date]?.length || 0), 0);
   }, [currentDate, eventDates, eventsByDate]);
 
   const goToPreviousMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    updateMonth(newDate);
   };
 
   const goToNextMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+    updateMonth(newDate);
   };
 
   const goToToday = () => {
-    setCurrentDate(new Date());
+    updateMonth(new Date());
   };
 
   const handleDayClick = (date) => {
-    setSelectedDate(date);
-    setSelectedEvent(null);
-    setModalOpen(true);
+    openAddModal(date);
   };
 
   const handleEventClick = (event, e) => {
-    e.stopPropagation();
-    setSelectedEvent(event);
-    setSelectedDate(new Date(event.startTime));
-    setModalOpen(true);
+    e?.stopPropagation();
+    openEditModal(event);
+  };
+
+  const handleEditEvent = (event) => {
+    openEditModal(event);
   };
 
   const handleSaveEvent = async (formData) => {
@@ -132,64 +282,49 @@ const EventCalendar = () => {
         await eventScheduleApi.create(companyId, requestData);
       }
 
-      await fetchData();
-      setModalOpen(false);
-      setSelectedEvent(null);
+      await fetchSchedules();
+      closeModal();
     } catch (err) {
       throw err;
     }
   };
 
   const handleDeleteEvent = async (eventId) => {
-    if (!window.confirm('Czy na pewno chcesz usunąć to wydarzenie?')) return;
+    if (!window.confirm('Are you sure you want to delete this event?')) return;
 
     try {
       await eventScheduleApi.delete(companyId, eventId);
-      await fetchData();
-      setModalOpen(false);
-      setSelectedEvent(null);
+      await fetchSchedules();
+      closeModal();
     } catch (err) {
       setError(err.response?.data?.message || err.message);
     }
   };
 
-  const closeModal = () => {
-    setModalOpen(false);
-    setSelectedEvent(null);
-    setSelectedDate(null);
-  };
-
   const getEventsForSelectedDate = () => {
     if (!selectedDate) return [];
-
-    const year = selectedDate.getFullYear();
-    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-    const day = String(selectedDate.getDate()).padStart(2, '0');
-    const dateKey = `${year}-${month}-${day}`;
-
+    const dateKey = formatDateKey(selectedDate);
     return eventsByDate[dateKey] || [];
   };
 
-  if (loading) {
+  const clearError = () => setError(null);
+
+  if (loading && schedules.length === 0) {
     return (
       <div className={styles.calendarLoading}>
         <div className="spinner"></div>
-        <p>Ładowanie kalendarza...</p>
+        <p>Loading calendar...</p>
       </div>
     );
   }
 
   return (
     <div className={styles.calendar}>
-      {error && (
-        <div className={styles.calendarError}>
-          <span>⚠️ {error}</span>
-          <button onClick={fetchData} className={styles.retryBtn}>
-            Spróbuj ponownie
-          </button>
-        </div>
-      )}
-
+      <ErrorModal
+        error={error}
+        onClose={clearError}
+        title="Calendar Error"
+      />
 
       <CalendarHeader
         currentDate={currentDate}
@@ -197,7 +332,11 @@ const EventCalendar = () => {
         onNextMonth={goToNextMonth}
         onToday={goToToday}
         eventsCount={eventsInCurrentMonth}
-        eventDates={eventDates}
+        totalEvents={schedules.length}
+        eventTypes={eventTypes}
+        selectedEventTypeId={eventTypeParam}
+        onEventTypeFilter={handleEventTypeFilter}
+        loading={loading}
       />
 
       <CalendarGrid
@@ -217,6 +356,7 @@ const EventCalendar = () => {
           eventsForDay={getEventsForSelectedDate()}
           onSave={handleSaveEvent}
           onDelete={handleDeleteEvent}
+          onEditEvent={handleEditEvent}
         />
       )}
     </div>
