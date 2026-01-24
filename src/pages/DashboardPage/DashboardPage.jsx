@@ -5,7 +5,7 @@ import Navbar from '../../components/Navbar/Navbar.jsx';
 import DashboardOverview from '../../components/DashboardOverview/DashboardOverview.jsx';
 import StaffMemberList from '../../components/StaffMemberList/StaffMemberList.jsx';
 import ReservationList from '../../components/ReservationList/ReservationList.jsx';
-import EventCalendar from '../../components/EventCalendar/index.js';
+import EventCalendar from '../../components/EventCalendar/EventCalendar.jsx';
 import EventTypeList from '../../components/EventTypeList/EventTypeList.jsx';
 import ParticipantList from '../../components/ParticipantList/ParticipantList.jsx';
 import SpecializationList from '../../components/SpecializationList/SpecializationList.jsx';
