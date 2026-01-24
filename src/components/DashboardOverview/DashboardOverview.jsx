@@ -1,169 +1,199 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useCallback, useMemo} from 'react';
 import {useAuth} from '../../context/AuthContext';
 import {reservationApi, participantApi, eventScheduleApi} from '../../services/api';
-import './DashboardOverview.css';
+import styles from './DashboardOverview.module.css';
 
 const DashboardOverview = () => {
   const {selectedCompany} = useAuth();
   const companyId = selectedCompany?.id;
 
-  const [stats, setStats] = useState({
-    currentMonthReservations: 0,
-    previousMonthReservations: 0,
-    currentMonthRevenue: 0,
-    previousMonthRevenue: 0,
-    totalParticipants: 0,
-    upcomingEvents: 0,
-    paidReservations: 0,
-    unpaidReservations: 0,
+  const [data, setData] = useState({
+    reservations: [],
+    participants: [],
+    schedules: [],
   });
-  const [recentReservations, setRecentReservations] = useState([]);
-  const [upcomingSchedules, setUpcomingSchedules] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const [loading, setLoading] = useState({
+    initial: true,
+    refreshing: false,
+  });
+
+  const [errors, setErrors] = useState({
+    reservations: null,
+    participants: null,
+    schedules: null,
+  });
+
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const parseApiResponse = useCallback((response) => {
+    if (!response?.data) return [];
+    if (Array.isArray(response.data)) return response.data;
+    if (response.data.items && Array.isArray(response.data.items)) return response.data.items;
+    if (response.data.data && Array.isArray(response.data.data)) return response.data.data;
+    return [];
+  }, []);
+
+  const fetchDashboardData = useCallback(async (isRefresh = false) => {
+    if (!companyId) return;
+
+    try {
+      setLoading(prev => ({
+        ...prev,
+        [isRefresh ? 'refreshing' : 'initial']: true,
+      }));
+
+      setErrors({reservations: null, participants: null, schedules: null});
+
+      const results = await Promise.allSettled([
+        reservationApi.getAll(companyId, {pageSize: 500}),
+        participantApi.getAll(companyId, {pageSize: 500}),
+        eventScheduleApi.getAll(companyId, {pageSize: 500}),
+      ]);
+
+      const newData = {reservations: [], participants: [], schedules: []};
+      const newErrors = {reservations: null, participants: null, schedules: null};
+
+      if (results[0].status === 'fulfilled') {
+        newData.reservations = parseApiResponse(results[0].value);
+      } else {
+        newErrors.reservations = results[0].reason?.message || 'Failed to fetch reservations';
+      }
+
+      if (results[1].status === 'fulfilled') {
+        newData.participants = parseApiResponse(results[1].value);
+      } else {
+        newErrors.participants = results[1].reason?.message || 'Failed to fetch participants';
+      }
+
+      if (results[2].status === 'fulfilled') {
+        newData.schedules = parseApiResponse(results[2].value);
+      } else {
+        newErrors.schedules = results[2].reason?.message || 'Failed to fetch events';
+      }
+
+      setData(newData);
+      setErrors(newErrors);
+      setLastUpdated(new Date());
+
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+    } finally {
+      setLoading({initial: false, refreshing: false});
+    }
+  }, [companyId, parseApiResponse]);
 
   useEffect(() => {
     if (companyId) {
       fetchDashboardData();
     } else {
-      setLoading(false);
+      setLoading({initial: false, refreshing: false});
     }
-  }, [companyId]);
+  }, [companyId, fetchDashboardData]);
 
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const stats = useMemo(() => {
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
-      const now = new Date();
-      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    const {reservations, participants, schedules} = data;
 
-      let reservations = [];
-      let participants = [];
-      let schedules = [];
+    const currentMonthReservations = reservations.filter(r => {
+      if (!r.createdAt) return false;
+      const createdAt = new Date(r.createdAt);
+      return createdAt >= currentMonthStart && createdAt <= now;
+    });
 
-      try {
-        const reservationsRes = await reservationApi.getAll(companyId, {pageSize: 1000});
-        reservations = reservationsRes.data?.items || reservationsRes.data || [];
-      } catch (err) {
-        console.error('Error fetching reservations:', err);
-      }
+    const previousMonthReservations = reservations.filter(r => {
+      if (!r.createdAt) return false;
+      const createdAt = new Date(r.createdAt);
+      return createdAt >= previousMonthStart && createdAt <= previousMonthEnd;
+    });
 
-      try {
-        const participantsRes = await participantApi.getAll(companyId, {pageSize: 1000});
-        participants = participantsRes.data?.items || participantsRes.data || [];
-      } catch (err) {
-        console.error('Error fetching participants:', err);
-      }
-
-      try {
-        const schedulesRes = await eventScheduleApi.getAll(companyId, {pageSize: 1000});
-        schedules = schedulesRes.data?.items || schedulesRes.data || [];
-      } catch (err) {
-        console.error('Error fetching schedules:', err);
-      }
-
-      if (!Array.isArray(reservations)) reservations = [];
-      if (!Array.isArray(participants)) participants = [];
-      if (!Array.isArray(schedules)) schedules = [];
-
-      const currentMonthReservations = reservations.filter(r => {
-        if (!r.createdAt) return false;
-        const createdAt = new Date(r.createdAt);
-        return createdAt >= currentMonthStart && createdAt <= now;
-      });
-
-      const previousMonthReservations = reservations.filter(r => {
-        if (!r.createdAt) return false;
-        const createdAt = new Date(r.createdAt);
-        return createdAt >= previousMonthStart && createdAt <= previousMonthEnd;
-      });
-
-      const currentMonthRevenue = currentMonthReservations.reduce((sum, r) => {
-        const price = r.eventSchedule?.eventType?.price || 0;
-        const participantCount = r.participants?.length || 1;
-        return sum + (price * participantCount);
+    const calculateRevenue = (reservationList) => {
+      return reservationList.reduce((sum, r) => {
+        const price = r.eventSchedule?.eventType?.price || r.eventType?.price || r.price || r.totalPrice || 0;
+        const participantCount = r.participants?.length || r.participantCount || 1;
+        return sum + (Number(price) * participantCount);
       }, 0);
+    };
 
-      const previousMonthRevenue = previousMonthReservations.reduce((sum, r) => {
-        const price = r.eventSchedule?.eventType?.price || 0;
-        const participantCount = r.participants?.length || 1;
-        return sum + (price * participantCount);
-      }, 0);
+    const upcomingEvents = schedules.filter(s => {
+      if (!s.startTime) return false;
+      const startTime = new Date(s.startTime);
+      return startTime >= now && s.status !== 'Cancelled';
+    });
 
-      const upcomingEvents = schedules.filter(s => {
-        if (!s.startTime) return false;
-        const startTime = new Date(s.startTime);
-        return startTime >= now && s.status !== 'Cancelled';
-      });
+    const activeReservations = reservations.filter(r => r.status !== 'Cancelled');
+    const paidReservations = activeReservations.filter(r => r.isPaid).length;
+    const unpaidReservations = activeReservations.filter(r => !r.isPaid).length;
 
-      const paidReservations = reservations.filter(r => r.isPaid).length;
-      const unpaidReservations = reservations.filter(r => !r.isPaid && r.status !== 'Cancelled').length;
-
-      setStats({
-        currentMonthReservations: currentMonthReservations.length,
-        previousMonthReservations: previousMonthReservations.length,
-        currentMonthRevenue,
-        previousMonthRevenue,
-        totalParticipants: participants.length,
-        upcomingEvents: upcomingEvents.length,
-        paidReservations,
-        unpaidReservations,
-      });
-
-      const sortedReservations = [...reservations]
+    return {
+      currentMonthReservations: currentMonthReservations.length,
+      previousMonthReservations: previousMonthReservations.length,
+      currentMonthRevenue: calculateRevenue(currentMonthReservations),
+      previousMonthRevenue: calculateRevenue(previousMonthReservations),
+      totalParticipants: participants.length,
+      upcomingEvents: upcomingEvents.length,
+      paidReservations,
+      unpaidReservations,
+      upcomingSchedules: upcomingEvents
+        .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+        .slice(0, 5),
+      recentReservations: [...reservations]
         .filter(r => r.createdAt)
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
-      setRecentReservations(sortedReservations);
+        .slice(0, 5),
+    };
+  }, [data]);
 
-      const sortedSchedules = upcomingEvents
-        .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
-        .slice(0, 5);
-      setUpcomingSchedules(sortedSchedules);
-
-      setLoading(false);
-
-    } catch (err) {
-      console.error('Error in fetchDashboardData:', err);
-      setError(`Błąd: ${err.response?.data?.message || err.message || 'Nieznany błąd'}`);
-      setLoading(false);
-    }
-  };
-
-  const calculatePercentageChange = (current, previous) => {
+  const calculatePercentageChange = useCallback((current, previous) => {
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous * 100).toFixed(1);
-  };
+  }, []);
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('pl-PL', {
+  const formatCurrency = useCallback((amount) => {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'PLN'
-    }).format(amount);
-  };
+      currency: 'USD',
+    }).format(amount || 0);
+  }, []);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('pl-PL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch {
+      return '-';
+    }
+  }, []);
 
-  const getMonthName = (offset = 0) => {
+  const formatTime = useCallback((date) => {
+    if (!date) return '';
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }, []);
+
+  const getMonthName = useCallback((offset = 0) => {
     const date = new Date();
     date.setMonth(date.getMonth() + offset);
-    return date.toLocaleDateString('pl-PL', {month: 'long'});
-  };
+    return date.toLocaleDateString('en-US', {month: 'long'});
+  }, []);
 
-  // Ikony SVG w tym samym stylu co menu
-  const icons = {
+  const handleRefresh = useCallback(() => {
+    fetchDashboardData(true);
+  }, [fetchDashboardData]);
+
+  const icons = useMemo(() => ({
     calendar: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
            strokeLinejoin="round">
@@ -241,40 +271,69 @@ const DashboardOverview = () => {
         <path d="M10 18h4"/>
       </svg>
     ),
-  };
+    refresh: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+           strokeLinejoin="round">
+        <polyline points="23 4 23 10 17 10"/>
+        <polyline points="1 20 1 14 7 14"/>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+      </svg>
+    ),
+    trendUp: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+           strokeLinejoin="round">
+        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+        <polyline points="17 6 23 6 23 12"/>
+      </svg>
+    ),
+    trendDown: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+           strokeLinejoin="round">
+        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+        <polyline points="17 18 23 18 23 12"/>
+      </svg>
+    ),
+    check: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+           strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    ),
+  }), []);
 
   if (!companyId) {
     return (
-      <div className="dashboard-overview">
-        <div className="overview-empty">
-          <div className="empty-icon">{icons.building}</div>
-          <h2>Brak wybranej firmy</h2>
-          <p>Wybierz firmę, aby zobaczyć statystyki.</p>
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIcon}>{icons.building}</div>
+          <h2 className={styles.emptyTitle}>No Company Selected</h2>
+          <p className={styles.emptyMessage}>Please select a company to view dashboard statistics.</p>
         </div>
       </div>
     );
   }
 
-  if (loading) {
+  if (loading.initial) {
     return (
-      <div className="dashboard-overview">
-        <div className="overview-loading">
-          <div className="spinner"></div>
-          <p>Ładowanie danych...</p>
+      <div className={styles.container}>
+        <div className={styles.loading}>
+          <div className={styles.loadingSpinner}></div>
+          <span>Loading dashboard data...</span>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  const hasAllErrors = errors.reservations && errors.participants && errors.schedules;
+  if (hasAllErrors) {
     return (
-      <div className="dashboard-overview">
-        <div className="overview-error">
-          <div className="error-icon">{icons.alertCircle}</div>
-          <h2>Wystąpił problem</h2>
-          <p>{error}</p>
-          <button onClick={fetchDashboardData} className="btn-retry">
-            Spróbuj ponownie
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <div className={styles.errorIcon}>{icons.alertCircle}</div>
+          <h2 className={styles.emptyTitle}>Something went wrong</h2>
+          <p className={styles.emptyMessage}>Failed to load dashboard data. Please try again.</p>
+          <button onClick={handleRefresh} className={styles.addBtn}>
+            Try Again
           </button>
         </div>
       </div>
@@ -291,175 +350,228 @@ const DashboardOverview = () => {
     stats.previousMonthRevenue
   );
 
+  const totalPayments = stats.paidReservations + stats.unpaidReservations;
+  const paidPercentage = totalPayments > 0 ? (stats.paidReservations / totalPayments) * 100 : 0;
+  const unpaidPercentage = totalPayments > 0 ? (stats.unpaidReservations / totalPayments) * 100 : 0;
+
   return (
-    <div className="dashboard-overview">
-      <div className="overview-header">
-        <h1>Panel Główny</h1>
-        <p className="overview-subtitle">
-          Podsumowanie aktywności firmy <strong>{selectedCompany?.name}</strong> w obecnym miesiącu
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-blue">
-            {icons.calendar}
-          </div>
-          <div className="stat-content">
-            <span className="stat-label">Rezerwacje ({getMonthName()})</span>
-            <span className="stat-value">{stats.currentMonthReservations}</span>
-            <div className={`stat-change ${parseFloat(reservationChange) >= 0 ? 'positive' : 'negative'}`}>
-              <span>{parseFloat(reservationChange) >= 0 ? '↑' : '↓'} {Math.abs(reservationChange)}%</span>
-              <span className="vs-text">vs {getMonthName(-1)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-green">
-            {icons.money}
-          </div>
-          <div className="stat-content">
-            <span className="stat-label">Przychód ({getMonthName()})</span>
-            <span className="stat-value">{formatCurrency(stats.currentMonthRevenue)}</span>
-            <div className={`stat-change ${parseFloat(revenueChange) >= 0 ? 'positive' : 'negative'}`}>
-              <span>{parseFloat(revenueChange) >= 0 ? '↑' : '↓'} {Math.abs(revenueChange)}%</span>
-              <span className="vs-text">vs {getMonthName(-1)}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-purple">
-            {icons.users}
-          </div>
-          <div className="stat-content">
-            <span className="stat-label">Wszyscy uczestnicy</span>
-            <span className="stat-value">{stats.totalParticipants}</span>
-            <div className="stat-info">Zarejestrowani w systemie</div>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-orange">
-            {icons.clock}
-          </div>
-          <div className="stat-content">
-            <span className="stat-label">Nadchodzące wydarzenia</span>
-            <span className="stat-value">{stats.upcomingEvents}</span>
-            <div className="stat-info">Zaplanowanych</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Payment Status */}
-      <div className="payment-section">
-        <div className="section-title">
-          <span className="section-icon">{icons.creditCard}</span>
-          <h3>Status płatności</h3>
-        </div>
-        <div className="payment-bars">
-          <div className="payment-bar">
-            <div className="payment-label">
-              <span className="dot dot-green"></span>
-              <span>Opłacone</span>
-            </div>
-            <div className="payment-progress">
-              <div
-                className="progress-fill progress-green"
-                style={{
-                  width: `${stats.paidReservations + stats.unpaidReservations > 0
-                    ? (stats.paidReservations / (stats.paidReservations + stats.unpaidReservations)) * 100
-                    : 0}%`
-                }}
-              />
-            </div>
-            <span className="payment-count">{stats.paidReservations}</span>
-          </div>
-          <div className="payment-bar">
-            <div className="payment-label">
-              <span className="dot dot-orange"></span>
-              <span>Nieopłacone</span>
-            </div>
-            <div className="payment-progress">
-              <div
-                className="progress-fill progress-orange"
-                style={{
-                  width: `${stats.paidReservations + stats.unpaidReservations > 0
-                    ? (stats.unpaidReservations / (stats.paidReservations + stats.unpaidReservations)) * 100
-                    : 0}%`
-                }}
-              />
-            </div>
-            <span className="payment-count">{stats.unpaidReservations}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Two Column Layout */}
-      <div className="overview-columns">
-        <div className="overview-card">
-          <div className="section-title">
-            <span className="section-icon">{icons.list}</span>
-            <h3>Ostatnie rezerwacje</h3>
-          </div>
-          {recentReservations.length > 0 ? (
-            <ul className="item-list">
-              {recentReservations.map((reservation) => (
-                <li key={reservation.id} className="item-row">
-                  <div className="item-info">
-                    <span className="item-title">
-                      {reservation.eventSchedule?.eventType?.name || 'Wydarzenie'}
-                    </span>
-                    <span className="item-subtitle">
-                      {reservation.participants?.length || 0} uczestnik(ów)
-                    </span>
-                  </div>
-                  <div className="item-meta">
-                    <span className={`badge badge-${(reservation.status || 'pending').toLowerCase()}`}>
-                      {reservation.status || 'Pending'}
-                    </span>
-                    <span className="item-date">{formatDate(reservation.createdAt)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="no-data">Brak rezerwacji do wyświetlenia</p>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <div className={styles.headerLeft}>
+          <h1 className={styles.title}>Dashboard</h1>
+          {lastUpdated && (
+            <span className={styles.lastUpdated}>
+              Updated at {formatTime(lastUpdated)}
+            </span>
           )}
         </div>
+        <button
+          onClick={handleRefresh}
+          className={`${styles.refreshBtn} ${loading.refreshing ? styles.spinning : ''}`}
+          disabled={loading.refreshing}
+          title="Refresh data"
+        >
+          {icons.refresh}
+        </button>
+      </div>
 
-        <div className="overview-card">
-          <div className="section-title">
-            <span className="section-icon">{icons.clock}</span>
-            <h3>Nadchodzące wydarzenia</h3>
+      <div className={styles.content}>
+        {(errors.reservations || errors.participants || errors.schedules) && (
+          <div className={styles.errorNotices}>
+            {errors.reservations && (
+              <div className={styles.errorNotice}>
+                <span className={styles.errorNoticeIcon}>{icons.alertCircle}</span>
+                <span>Reservations: {errors.reservations}</span>
+                <button onClick={() => setErrors(e => ({...e, reservations: null}))} className={styles.dismissBtn}>
+                  Dismiss
+                </button>
+              </div>
+            )}
+            {errors.participants && (
+              <div className={styles.errorNotice}>
+                <span className={styles.errorNoticeIcon}>{icons.alertCircle}</span>
+                <span>Participants: {errors.participants}</span>
+                <button onClick={() => setErrors(e => ({...e, participants: null}))} className={styles.dismissBtn}>
+                  Dismiss
+                </button>
+              </div>
+            )}
+            {errors.schedules && (
+              <div className={styles.errorNotice}>
+                <span className={styles.errorNoticeIcon}>{icons.alertCircle}</span>
+                <span>Events: {errors.schedules}</span>
+                <button onClick={() => setErrors(e => ({...e, schedules: null}))} className={styles.dismissBtn}>
+                  Dismiss
+                </button>
+              </div>
+            )}
           </div>
-          {upcomingSchedules.length > 0 ? (
-            <ul className="item-list">
-              {upcomingSchedules.map((schedule) => (
-                <li key={schedule.id} className="item-row">
-                  <div className="item-info">
-                    <span className="item-title">
-                      {schedule.eventType?.name || 'Wydarzenie'}
-                    </span>
-                    <span className="item-subtitle">
-                      <span className="location-icon">{icons.mapPin}</span>
-                      {schedule.placeName}
-                    </span>
-                  </div>
-                  <div className="item-meta">
-                    <span className={`badge badge-${(schedule.status || 'active').toLowerCase()}`}>
-                      {schedule.status || 'Active'}
-                    </span>
-                    <span className="item-date">{formatDate(schedule.startTime)}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="no-data">Brak nadchodzących wydarzeń</p>
-          )}
+        )}
+
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.statIconBlue}`}>
+              {icons.calendar}
+            </div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Reservations ({getMonthName()})</span>
+              <span className={styles.statValue}>{stats.currentMonthReservations}</span>
+              <div
+                className={`${styles.statChange} ${parseFloat(reservationChange) >= 0 ? styles.positive : styles.negative}`}>
+                <span className={styles.changeIcon}>
+                  {parseFloat(reservationChange) >= 0 ? icons.trendUp : icons.trendDown}
+                </span>
+                <span>{Math.abs(reservationChange)}%</span>
+                <span className={styles.vsText}>vs {getMonthName(-1)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.statIconGreen}`}>
+              {icons.money}
+            </div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Revenue ({getMonthName()})</span>
+              <span className={styles.statValue}>{formatCurrency(stats.currentMonthRevenue)}</span>
+              <div
+                className={`${styles.statChange} ${parseFloat(revenueChange) >= 0 ? styles.positive : styles.negative}`}>
+                <span className={styles.changeIcon}>
+                  {parseFloat(revenueChange) >= 0 ? icons.trendUp : icons.trendDown}
+                </span>
+                <span>{Math.abs(revenueChange)}%</span>
+                <span className={styles.vsText}>vs {getMonthName(-1)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.statIconPurple}`}>
+              {icons.users}
+            </div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Total Participants</span>
+              <span className={styles.statValue}>{stats.totalParticipants}</span>
+              <span className={styles.statInfo}>Registered in system</span>
+            </div>
+          </div>
+
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.statIconOrange}`}>
+              {icons.clock}
+            </div>
+            <div className={styles.statContent}>
+              <span className={styles.statLabel}>Upcoming Events</span>
+              <span className={styles.statValue}>{stats.upcomingEvents}</span>
+              <span className={styles.statInfo}>Scheduled</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <div className={styles.sectionIcon}>{icons.creditCard}</div>
+            <h3 className={styles.sectionTitle}>Payment Status</h3>
+          </div>
+          <div className={styles.paymentBars}>
+            <div className={styles.paymentBar}>
+              <div className={styles.paymentLabel}>
+                <span className={`${styles.dot} ${styles.dotGreen}`}></span>
+                <span>Paid</span>
+              </div>
+              <div className={styles.paymentProgress}>
+                <div
+                  className={`${styles.progressFill} ${styles.progressGreen}`}
+                  style={{width: `${paidPercentage}%`}}
+                />
+              </div>
+              <span className={styles.paymentCount}>{stats.paidReservations}</span>
+            </div>
+            <div className={styles.paymentBar}>
+              <div className={styles.paymentLabel}>
+                <span className={`${styles.dot} ${styles.dotOrange}`}></span>
+                <span>Unpaid</span>
+              </div>
+              <div className={styles.paymentProgress}>
+                <div
+                  className={`${styles.progressFill} ${styles.progressOrange}`}
+                  style={{width: `${unpaidPercentage}%`}}
+                />
+              </div>
+              <span className={styles.paymentCount}>{stats.unpaidReservations}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.columnsGrid}>
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionIcon}>{icons.list}</div>
+              <h3 className={styles.sectionTitle}>Recent Reservations</h3>
+            </div>
+            {stats.recentReservations.length > 0 ? (
+              <ul className={styles.itemList}>
+                {stats.recentReservations.map((reservation) => (
+                  <li key={reservation.id} className={styles.itemRow}>
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemTitle}>
+                        {reservation.eventSchedule?.eventType?.name
+                          || reservation.eventType?.name
+                          || 'Event'}
+                      </span>
+                      <span className={styles.itemSubtitle}>
+                        {reservation.participants?.length || reservation.participantCount || 0} participant(s)
+                      </span>
+                    </div>
+                    <div className={styles.itemMeta}>
+                      <span className={`${styles.statusBadge} ${styles[`status${(reservation.status || 'Pending')}`]}`}>
+                        {reservation.status || 'Pending'}
+                      </span>
+                      <span className={styles.itemDate}>{formatDate(reservation.createdAt)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className={styles.noData}>
+                <span>No reservations to display</span>
+              </div>
+            )}
+          </div>
+
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionIcon}>{icons.clock}</div>
+              <h3 className={styles.sectionTitle}>Upcoming Events</h3>
+            </div>
+            {stats.upcomingSchedules.length > 0 ? (
+              <ul className={styles.itemList}>
+                {stats.upcomingSchedules.map((schedule) => (
+                  <li key={schedule.id} className={styles.itemRow}>
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemTitle}>
+                        {schedule.eventType?.name || schedule.name || 'Event'}
+                      </span>
+                      <span className={styles.itemSubtitle}>
+                        <span className={styles.locationIcon}>{icons.mapPin}</span>
+                        {schedule.placeName || schedule.location || 'No location'}
+                      </span>
+                    </div>
+                    <div className={styles.itemMeta}>
+                      <span className={`${styles.statusBadge} ${styles[`status${(schedule.status || 'Active')}`]}`}>
+                        {schedule.status || 'Active'}
+                      </span>
+                      <span className={styles.itemDate}>{formatDate(schedule.startTime)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className={styles.noData}>
+                <span>No upcoming events</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
