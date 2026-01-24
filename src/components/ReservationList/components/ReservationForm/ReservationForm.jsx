@@ -187,7 +187,8 @@ const ReservationForm = ({
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
-                        <line x1="17" y1="8" x2="23" y2="8"></line>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                       </svg>
                       <span>No participants added yet</span>
                       <span className={styles.noAddedParticipantsHint}>
