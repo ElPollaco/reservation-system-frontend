@@ -1,7 +1,8 @@
 .calendar {
-  background-color: var(--card-bg, #ffffff);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--bg-primary);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
   overflow: hidden;
 }
 
@@ -16,7 +17,7 @@
 }
 
 .calendarHeader {
-  padding: 1.20rem 1.5rem;
+  padding: 1.17rem 1.5rem;
   border-bottom: 1px solid var(--border-color, #e5e7eb);
   background: linear-gradient(to bottom, var(--bg-secondary, #f9fafb), var(--card-bg, #ffffff));
 }
