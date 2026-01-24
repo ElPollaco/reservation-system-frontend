@@ -94,9 +94,6 @@
   color: var(--primary-500);
 }
 
-/* ----------------------------------------
-   RESPONSIVE
-   ---------------------------------------- */
 @media (max-width: 480px) {
   .page {
     padding: var(--spacing-lg);
