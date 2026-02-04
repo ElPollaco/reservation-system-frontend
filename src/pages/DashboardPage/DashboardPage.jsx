@@ -6,6 +6,8 @@ import DashboardOverview from '../../components/DashboardOverview/DashboardOverv
 import StaffMemberList from '../../components/StaffMemberList/StaffMemberList.jsx';
 import ReservationList from '../../components/ReservationList/ReservationList.jsx';
 import EventCalendar from '../../components/EventCalendar/EventCalendar.jsx';
+import TrainerClasses from '../../components/TrainerClasses/TrainerClasses.jsx';
+import TrainerAvailability from '../../components/TrainerAvailability/TrainerAvailability.jsx';
 import EventTypeList from '../../components/EventTypeList/EventTypeList.jsx';
 import ParticipantList from '../../components/ParticipantList/ParticipantList.jsx';
 import SpecializationList from '../../components/SpecializationList/SpecializationList.jsx';
@@ -13,7 +15,7 @@ import CompanySettings from '../../components/CompanySettings/CompanySettings.js
 import styles from './DashboardPage.module.css';
 
 const DashboardPage = () => {
-  const {isManager} = useAuth();
+  const {isManager, isTrainer, isReceptionEmployee} = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -77,7 +79,104 @@ const DashboardPage = () => {
     },
   ];
 
-  const availableTabs = isManager() ? managerTabs : [];
+  const trainerTabs = [
+    {
+      id: 'schedules',
+      path: '/dashboard/schedules',
+      label: 'Schedule',
+      icon: 'clock',
+      component: EventCalendar
+    },
+    {
+      id: 'classes',
+      path: '/dashboard/classes',
+      label: 'Classes',
+      icon: 'calendar',
+      component: TrainerAvailability
+    },
+    {
+      id: 'availability',
+      path: '/dashboard/availability',
+      label: 'Availability',
+      icon: 'availability',
+      component: TrainerAvailability
+    },
+    {
+      id: 'eventTypes',
+      path: '/dashboard/eventTypes',
+      label: 'Event Types',
+      icon: 'layers',
+      component: EventTypeList
+    },
+    {
+      id: 'specializations',
+      path: '/dashboard/specializations',
+      label: 'Specializations',
+      icon: 'check-circle',
+      component: SpecializationList
+    },
+    {
+      id: 'settings',
+      path: '/dashboard/settings',
+      label: 'Settings',
+      icon: 'settings',
+      component: CompanySettings
+    },
+  ];
+
+  const receptionEmployeeTabs = [
+    {
+      id: 'reservations',
+      path: '/dashboard/reservations',
+      label: 'Reservations',
+      icon: 'calendar',
+      component: ReservationList
+    },
+    {
+      id: 'schedules',
+      path: '/dashboard/schedules',
+      label: 'Schedule',
+      icon: 'clock',
+      component: EventCalendar
+    },
+    {
+      id: 'eventTypes',
+      path: '/dashboard/eventTypes',
+      label: 'Event Types',
+      icon: 'layers',
+      component: EventTypeList
+    },
+    {
+      id: 'participants',
+      path: '/dashboard/participants',
+      label: 'Participants',
+      icon: 'users',
+      component: ParticipantList
+    },
+    {
+      id: 'specializations',
+      path: '/dashboard/specializations',
+      label: 'Specializations',
+      icon: 'check-circle',
+      component: SpecializationList
+    },
+    {
+      id: 'settings',
+      path: '/dashboard/settings',
+      label: 'Settings',
+      icon: 'settings',
+      component: CompanySettings
+    },
+  ];
+
+  const getCurrentRole = () => {
+    if (isManager() === true) return managerTabs;
+    if (isTrainer() === true) return trainerTabs;
+    if (isReceptionEmployee() === true) return receptionEmployeeTabs;
+    return [];
+  };
+
+  const availableTabs = getCurrentRole();
 
   const getActiveTab = () => {
     const currentPath = location.pathname;
@@ -124,6 +223,11 @@ const DashboardPage = () => {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <circle cx="12" cy="12" r="10"/>
           <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      ),
+      availability: (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M6,2 Q12,4 18,2 L20,2 Q22,4 16,12 Q22,22 20,22 L18,22 12,20 Q6,22 4,22, Q4,20 8,12 Q2,2  6,2 Z" />
         </svg>
       ),
       layers: (
@@ -176,7 +280,7 @@ const DashboardPage = () => {
 
   return (
     <div className={styles['dashboard-layout']}>
-      <Navbar />
+      <Navbar/>
 
       <div className={styles['dashboard-container']}>
         <aside className={`${styles['dashboard-sidebar']} ${sidebarCollapsed ? styles.collapsed : ''}`}>
@@ -233,6 +337,35 @@ const DashboardPage = () => {
                     </div>
                   }
                 />
+              </Routes>
+            ) : isTrainer() ? (
+              <Routes>
+                <Route index element={<EventCalendar />} />
+                <Route path="schedules" element={<EventCalendar />} />
+                <Route path="classes" element={<TrainerClasses />}/>
+                <Route path="availability" element={<TrainerAvailability />}/>
+                <Route path="eventTypes" element={<EventTypeList />} />
+                <Route path="specializations" element={<SpecializationList />} />
+                <Route path="settings" element={<CompanySettings />} />
+                <Route
+                  path="*"
+                  element={
+                    <div className={styles['dashboard-empty']}>
+                      <h2>Page Not Found</h2>
+                      <p>Please choose an option from the menu</p>
+                    </div>
+                  }
+                />
+              </Routes>
+            ): isReceptionEmployee() ? (
+              <Routes>
+                <Route index element={<ReservationList />} />
+                <Route path="reservations" element={<ReservationList />} />
+                <Route path="schedules" element={<EventCalendar />} />
+                <Route path="eventTypes" element={<EventTypeList />} />
+                <Route path="participants" element={<ParticipantList />} />
+                <Route path="specializations" element={<SpecializationList />} />
+                <Route path="settings" element={<CompanySettings />} />
               </Routes>
             ) : (
               // eslint-disable-next-line react-hooks/static-components

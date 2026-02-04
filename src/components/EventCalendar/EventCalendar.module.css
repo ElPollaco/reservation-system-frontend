@@ -643,11 +643,24 @@
   border-top: 1px solid var(--border-color, #e5e7eb);
 }
 
+.dayEventsListStandalone {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
 .dayEventsList h3 {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-primary, #374151);
   margin: 0 0 0.75rem 0;
+}
+
+.dayEventsListStandalone h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary, #374151);
+  margin: 0.75rem 0 0.75rem 0;
 }
 
 .dayEventsList ul {
@@ -671,6 +684,36 @@
 
 .dayEventItem:hover {
   background-color: var(--bg-hover, #f3f4f6);
+}
+
+.detailLabel {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.detailRowStandalone {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 0.25rem;
+}
+
+.detailValue {
+  font-weight: 600;
+  color: #111827;
+}
+
+.eventDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 0;
 }
 
 .eventItemTime {

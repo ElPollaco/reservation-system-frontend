@@ -7,7 +7,7 @@ import Pagination from '../common/Pagination/Pagination.jsx';
 import styles from './EventTypeList.module.css';
 
 const EventTypeList = () => {
-  const {selectedCompany} = useAuth();
+  const {selectedCompany, isTrainer} = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [eventTypes, setEventTypes] = useState([]);
@@ -195,10 +195,11 @@ const EventTypeList = () => {
             </span>
           )}
         </div>
-        <button
+        {!isTrainer() && 
+          <button
           className={`${styles.addBtn} ${showForm ? styles.addBtnCancel : ''}`}
           onClick={() => showForm ? resetForm() : setShowForm(true)}
-        >
+          >
           {showForm ? (
             <>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -216,7 +217,8 @@ const EventTypeList = () => {
               Add Event Type
             </>
           )}
-        </button>
+          </button>
+        }
       </div>
 
       {showForm && (
@@ -340,8 +342,14 @@ const EventTypeList = () => {
                     <th>Duration</th>
                     <th>Price</th>
                     <th>Max Participants</th>
-                    <th>Min Staff</th>
-                    <th style={{textAlign: 'right'}}>Actions</th>
+                    {!isTrainer() ? (
+                      <>
+                        <th>Min Staff</th>
+                        <th style={{ textAlign: 'right' }}>Actions</th>
+                      </>
+                    ) : (
+                      <th style={{ textAlign: 'right' }}>Min Staff</th>
+                    )}
                   </tr>
                   </thead>
                   <tbody className={styles.tableBody}>
@@ -365,10 +373,17 @@ const EventTypeList = () => {
                       <td>
                         <span className={styles.cellNumber}>{type.maxParticipants}</span>
                       </td>
-                      <td>
+                      {!isTrainer() ? (
+                        <td>
+                          <span className={styles.cellNumber}>{type.minStaff}</span>
+                        </td>
+                      ) : (
+                      <td style={{ textAlign: 'right' }}>
                         <span className={styles.cellNumber}>{type.minStaff}</span>
                       </td>
-                      <td>
+                      )}
+                      {!isTrainer() &&
+                        <td>
                         <div className={styles.actionsCell}>
                           <button
                             className={`${styles.actionBtn} ${styles.editBtn}`}
@@ -394,7 +409,7 @@ const EventTypeList = () => {
                             Delete
                           </button>
                         </div>
-                      </td>
+                      </td>}
                     </tr>
                   ))}
                   </tbody>

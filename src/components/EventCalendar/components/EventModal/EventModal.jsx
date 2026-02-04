@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import styles from '../../EventCalendar.module.css';
+import { useAuth } from '../../../../context/AuthContext';
 
 const EventModal = ({
                       isOpen,
@@ -21,6 +22,8 @@ const EventModal = ({
     time: '09:00'
   });
 
+  const {isTrainer} = useAuth();
+
   useEffect(() => {
     if (selectedEvent) {
       const eventDate = new Date(selectedEvent.startTime);
@@ -41,6 +44,134 @@ const EventModal = ({
     }
     setFormError(null);
   }, [selectedEvent, selectedDate]);
+
+  const renderEditableForm = () => (
+    <>
+      <div className={styles.formGroup}>
+        <label htmlFor="eventTypeId">Event Type</label>
+        <div className={styles.selectWrapper}>
+          <select
+            id="eventTypeId"
+            name="eventTypeId"
+            value={formData.eventTypeId}
+            onChange={handleInputChange}
+            required
+            className={styles.formSelect}
+            disabled={isTrainer()}
+          >
+            <option value="">Select event type...</option>
+            {eventTypes.map(type => (
+              <option key={type.id} value={type.id}>
+                {type.name} ({type.duration} min, ${type.price})
+              </option>
+            ))}
+          </select>
+          <svg className={styles.selectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <div className={styles.formGroup}>
+        <label htmlFor="placeName">Location</label>
+        <input
+          type="text"
+          id="placeName"
+          name="placeName"
+          value={formData.placeName}
+          onChange={handleInputChange}
+          placeholder="e.g. Room A, Online, Office..."
+          required
+          className={styles.formInput}
+          disabled={isTrainer()}
+        />
+      </div>
+
+      <div className={styles.formGroup}>
+        <label htmlFor="time">Start Time</label>
+        <input
+          type="time"
+          id="time"
+          name="time"
+          value={formData.time}
+          onChange={handleInputChange}
+          required
+          className={styles.formInput}
+          disabled={isTrainer()}
+        />
+      </div>
+      
+      <div className={styles.formActions}>
+        {isEditing && (
+          <button
+            type="button"
+            onClick={() => onDelete(selectedEvent.id)}
+            className={styles.deleteBtn}
+            disabled={isTrainer()}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Delete
+          </button>
+        )}
+
+        <div className={styles.formActionsBtns}>
+          <button type="button" onClick={onClose} className={styles.cancelBtn}>
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving || !selectedDate || isTrainer()}
+            className={styles.saveBtn}
+          >
+            {saving ? (
+              <>
+                <span className={styles.spinnerSmall}></span>
+                Saving...
+              </>
+            ) : (
+              isEditing ? 'Save Changes' : 'Add Event'
+            )}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
+  const renderReadOnlyDetails = () => (
+    <>
+      <div className={styles.detailRowStandalone}>
+        <span className={styles.detailLabel}>Type:</span>
+        <span className={styles.detailValue}>
+          {selectedEvent.eventType?.name || '-'}
+        </span>
+      </div>
+
+      <div className={styles.detailRowStandalone}>
+        <span className={styles.detailLabel}>Location:</span>
+        <span className={styles.detailValue}>
+          {selectedEvent.placeName || '-'}
+        </span>
+      </div>
+
+      <div className={styles.detailRowStandalone}>
+        <span className={styles.detailLabel}>Time:</span>
+        <span className={styles.detailValue}>
+          {formatTime(selectedEvent.startTime)}
+        </span>
+      </div>
+
+      <div className={styles.detailRowStandalone}>
+        <span className={styles.detailLabel}>Status:</span>
+        <span className={styles.detailValue}>
+          {getStatusLabel(selectedEvent.status)}
+        </span>
+      </div>
+    </>
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -150,7 +281,11 @@ const EventModal = ({
             </div>
             <div>
               <h2 className={styles.modalTitle}>
-                {isEditing ? 'Edit Event' : 'New Event'}
+                {!isTrainer() && isEditing ? 'Edit Event' : 
+                 !isTrainer() && !isEditing ? 'New Event' : 
+                 isTrainer() && isEditing ? 'Event Details' :
+                 'Events Today'
+                }
               </h2>
               <p className={styles.modalDate}>
                 {formatDate(selectedDate)}
@@ -176,99 +311,17 @@ const EventModal = ({
               <span>{formError}</span>
             </div>
           )}
+          {!isTrainer() ? (
+            <form onSubmit={handleSubmit} className={styles.eventForm}>
+              {renderEditableForm()}
+            </form>
+          ) : (
+            isEditing ? renderReadOnlyDetails() : null
+          )}
+          
 
-          <form onSubmit={handleSubmit} className={styles.eventForm}>
-            <div className={styles.formGroup}>
-              <label htmlFor="eventTypeId">Event Type</label>
-              <div className={styles.selectWrapper}>
-                <select
-                  id="eventTypeId"
-                  name="eventTypeId"
-                  value={formData.eventTypeId}
-                  onChange={handleInputChange}
-                  required
-                  className={styles.formSelect}
-                >
-                  <option value="">Select event type...</option>
-                  {eventTypes.map(type => (
-                    <option key={type.id} value={type.id}>
-                      {type.name} ({type.duration} min, ${type.price})
-                    </option>
-                  ))}
-                </select>
-                <svg className={styles.selectArrow} viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     strokeWidth="2">
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="placeName">Location</label>
-              <input
-                type="text"
-                id="placeName"
-                name="placeName"
-                value={formData.placeName}
-                onChange={handleInputChange}
-                placeholder="e.g. Room A, Online, Office..."
-                required
-                className={styles.formInput}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="time">Start Time</label>
-              <input
-                type="time"
-                id="time"
-                name="time"
-                value={formData.time}
-                onChange={handleInputChange}
-                required
-                className={styles.formInput}
-              />
-            </div>
-
-            <div className={styles.formActions}>
-              {isEditing && (
-                <button
-                  type="button"
-                  onClick={() => onDelete(selectedEvent.id)}
-                  className={styles.deleteBtn}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  </svg>
-                  Delete
-                </button>
-              )}
-
-              <div className={styles.formActionsBtns}>
-                <button type="button" onClick={onClose} className={styles.cancelBtn}>
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving || !selectedDate}
-                  className={styles.saveBtn}
-                >
-                  {saving ? (
-                    <>
-                      <span className={styles.spinnerSmall}></span>
-                      Saving...
-                    </>
-                  ) : (
-                    isEditing ? 'Save Changes' : 'Add Event'
-                  )}
-                </button>
-              </div>
-            </div>
-          </form>
-
-          {eventsForDay.length > 0 && (
-            <div className={styles.dayEventsList}>
+          {(eventsForDay.length > 0 || isTrainer()) && (
+            <div className={!isTrainer() ? styles.dayEventsList : styles.dayEventsListStandalone}>
               <h3>
                 {isEditing
                   ? `Other events (${otherEventsForDay.length})`
@@ -292,7 +345,8 @@ const EventModal = ({
                       >
                         {getStatusLabel(event.status)}
                       </span>
-                      <button
+                      {!isTrainer() &&
+                        <button
                         type="button"
                         className={styles.editEventBtn}
                         onClick={() => onEditEvent(event)}
@@ -303,11 +357,14 @@ const EventModal = ({
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                       </button>
+                      }
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className={styles.noOtherEvents}>No other events on this day</p>
+                <p className={styles.noOtherEvents}>
+                  {isEditing ? 'No other events on this day' : 'No events on this day'}
+                </p>
               )}
             </div>
           )}

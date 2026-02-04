@@ -9,7 +9,7 @@ import ErrorModal from '../common/ErrorModal/ErrorModal';
 import styles from './EventCalendar.module.css';
 
 const EventCalendar = () => {
-  const {selectedCompany} = useAuth();
+  const {selectedCompany, isTrainer} = useAuth();
   const companyId = selectedCompany?.id;
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -249,11 +249,26 @@ const EventCalendar = () => {
   };
 
   const handleDayClick = (date) => {
+    if(isTrainer()){
+      setSelectedDate(date);
+      setSelectedEvent(null);
+      setModalOpen(true);
+      return;
+    }
+
     openAddModal(date);
   };
 
   const handleEventClick = (event, e) => {
     e?.stopPropagation();
+
+    if(isTrainer()){
+      setSelectedEvent(event);
+      setSelectedDate(new Date(event.startTime));
+      setModalOpen(true);
+      return;
+    }
+
     openEditModal(event);
   };
 
