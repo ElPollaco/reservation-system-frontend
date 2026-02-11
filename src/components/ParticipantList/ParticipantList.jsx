@@ -8,7 +8,7 @@ import Pagination from '../common/Pagination/Pagination.jsx';
 import styles from './ParticipantList.module.css';
 
 const ParticipantList = () => {
-  const {selectedCompany} = useAuth();
+  const {selectedCompany, isTrainer} = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [participants, setParticipants] = useState([]);
@@ -236,30 +236,32 @@ const ParticipantList = () => {
             </span>
           )}
         </div>
-        <button
-          className={`${styles.addBtn} ${showForm ? styles.addBtnCancel : ''}`}
-          onClick={() => showForm ? resetForm() : setShowForm(true)}
-        >
-          {showForm ? (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-              Cancel
-            </>
-          ) : (
-            <>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                <circle cx="8.5" cy="7" r="4"></circle>
-                <line x1="20" y1="8" x2="20" y2="14"></line>
-                <line x1="23" y1="11" x2="17" y2="11"></line>
-              </svg>
-              Add Participant
-            </>
-          )}
-        </button>
+        {!isTrainer() && 
+          <button
+            className={`${styles.addBtn} ${showForm ? styles.addBtnCancel : ''}`}
+            onClick={() => showForm ? resetForm() : setShowForm(true)}
+          >
+            {showForm ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Cancel
+              </>
+            ) : (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="8.5" cy="7" r="4"></circle>
+                  <line x1="20" y1="8" x2="20" y2="14"></line>
+                  <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
+                Add Participant
+              </>
+            )}
+          </button>
+        }
       </div>
 
       {showForm && (
@@ -386,8 +388,14 @@ const ParticipantList = () => {
                     <th>Name</th>
                     <th>Email</th>
                     <th>Phone</th>
-                    <th>Created</th>
-                    <th style={{textAlign: 'right'}}>Actions</th>
+                    {!isTrainer() ? (
+                      <>
+                        <th>Created</th>
+                        <th style={{ textAlign: 'right' }}>Actions</th>
+                      </>
+                    ) : (
+                      <th style={{ textAlign: 'right' }}>Created</th>
+                    )}
                   </tr>
                   </thead>
                   <tbody className={styles.tableBody}>
@@ -428,13 +436,23 @@ const ParticipantList = () => {
                             {participant.phone}
                           </div>
                         </td>
-                        <td>
-                          <div className={styles.cellDate}>
-                            <span className={styles.dateValue}>{date}</span>
-                            <span className={styles.timeValue}>{time}</span>
-                          </div>
-                        </td>
-                        <td>
+                        {!isTrainer() ? (
+                          <td>
+                            <div className={styles.cellDate}>
+                              <span className={styles.dateValue}>{date}</span>
+                              <span className={styles.timeValue}>{time}</span>
+                            </div>
+                          </td>
+                        ) : (
+                          <td style={{textAlign: 'right'}}>
+                            <div className={styles.cellDate}>
+                              <span className={styles.dateValue}>{date}</span>
+                              <span className={styles.timeValue}>{time}</span>
+                            </div>
+                          </td>
+                        )}
+                        {!isTrainer() &&
+                          <td>
                           <div className={styles.actionsCell}>
                             <button
                               className={`${styles.actionBtn} ${styles.editBtn}`}
@@ -462,7 +480,7 @@ const ParticipantList = () => {
                               <span>Delete</span>
                             </button>
                           </div>
-                        </td>
+                        </td>}
                       </tr>
                     );
                   })}

@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import styles from '../../ReservationList.module.css';
+import {useAuth} from '../../../../context/AuthContext.jsx';
 
 const MAX_VISIBLE_PARTICIPANTS = 2;
 
@@ -81,6 +82,8 @@ const ReservationTable = ({
     };
   };
 
+  const {isTrainer} = useAuth();
+
   const getStatusClass = (status) => {
     switch (status?.toLowerCase()) {
       case 'confirmed':
@@ -140,8 +143,16 @@ const ReservationTable = ({
           <th>Status</th>
           <th>Payment</th>
           <th>Notes</th>
-          <th>Created</th>
-          <th style={{textAlign: 'right'}}>Actions</th>
+          {!isTrainer() ? (
+            <>
+              <th>Created</th>
+              <th style={{ textAlign: 'right' }}>
+                Actions
+              </th>
+            </>
+          ) : (
+            <th style={{ textAlign: 'right' }}>Created</th>
+          )}
         </tr>
         </thead>
         <tbody className={styles.tableBody}>
@@ -197,12 +208,22 @@ const ReservationTable = ({
                     {reservation.notes || '-'}
                   </span>
               </td>
+              {!isTrainer() ? (
               <td>
                 <div className={styles.cellDate}>
                   <span className={styles.dateValue}>{createdAt.date}</span>
                   <span className={styles.timeValue}>{createdAt.time}</span>
                 </div>
               </td>
+              ) : (
+              <td style={{textAlign: 'right'}}>
+                <div className={styles.cellDate}>
+                  <span className={styles.dateValue}>{createdAt.date}</span>
+                  <span className={styles.timeValue}>{createdAt.time}</span>
+                </div>
+              </td>
+              )}
+              {!isTrainer() &&
               <td>
                 <div className={styles.actionsCell}>
                   {reservation.isPaid ? (
@@ -252,7 +273,7 @@ const ReservationTable = ({
                     <span>Delete</span>
                   </button>
                 </div>
-              </td>
+              </td>}
             </tr>
           );
         })}

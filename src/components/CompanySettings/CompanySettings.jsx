@@ -4,7 +4,7 @@ import {useAuth} from '../../context/AuthContext';
 import styles from './CompanySettings.module.css';
 
 const CompanySettings = () => {
-  const {selectedCompany, selectCompany, userRole} = useAuth();
+  const {selectedCompany, selectCompany, userRole, isManager} = useAuth();
   const [companyData, setCompanyData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -149,7 +149,7 @@ const CompanySettings = () => {
               <p className={styles.sectionSubtitle}>Manage your company information</p>
             </div>
           </div>
-          {!editing && (
+          {!editing && isManager() && (
             <button className={styles.editBtn} onClick={() => setEditing(true)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -340,18 +340,24 @@ const CompanySettings = () => {
                       <h5>Reception Mode</h5>
                       <p>
                         {companyData.isReception
-                          ? 'This company is marked as a reception point'
-                          : 'Enable reception mode to use as a front desk'}
+                          ? 'This company is marked as a reception point' :
+                          !companyData.isReception && isManager() 
+                          ? 'Enable reception mode to use as a front desk' :
+                          !isManager() 
+                          && 'This company is not marked as a reception point'
+                        }
                       </p>
                     </div>
                   </div>
-                  <button
+                  {isManager() && 
+                    <button
                     className={`${styles.receptionBtn} ${companyData.isReception ? styles.receptionBtnDisable : styles.receptionBtnEnable}`}
                     onClick={companyData.isReception ? handleUnmarkAsReception : handleMarkAsReception}
-                  >
-                    {companyData.isReception ? 'Disable' : 'Enable'}
-                  </button>
-                </div>
+                    >
+                      {companyData.isReception ? 'Disable' : 'Enable'}
+                    </button>
+                  }
+              </div>
               </div>
             </>
           )}
@@ -359,7 +365,8 @@ const CompanySettings = () => {
       </div>
 
       {/* Break Times Section */}
-      <div className={styles.section}>
+      {isManager() && 
+        <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionHeaderLeft}>
             <div className={`${styles.sectionIcon} ${styles.sectionIconWarning}`}>
@@ -373,7 +380,7 @@ const CompanySettings = () => {
               <p className={styles.sectionSubtitle}>Configure break times between events</p>
             </div>
           </div>
-          {!editingBreakTimes && (
+          {!editingBreakTimes && 
             <button className={styles.editBtn} onClick={() => setEditingBreakTimes(true)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -381,7 +388,7 @@ const CompanySettings = () => {
               </svg>
               Edit
             </button>
-          )}
+          }
         </div>
 
         <div className={styles.sectionContent}>
@@ -470,6 +477,7 @@ const CompanySettings = () => {
           )}
         </div>
       </div>
+      }
     </div>
   );
 };

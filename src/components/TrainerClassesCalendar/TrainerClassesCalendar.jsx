@@ -1,16 +1,17 @@
-import {useState, useEffect, useMemo, useCallback} from 'react';
+import {useState, useEffect, useMemo, useCallback, use} from 'react';
 import {useSearchParams} from 'react-router-dom';
-import {eventScheduleApi, eventTypeApi} from '../../services/api';
+import {eventTypeApi, staffMemberApi} from '../../services/api';
 import {useAuth} from '../../context/AuthContext';
-import CalendarHeader from './components/CalendarHeader/CalendarHeader.jsx';
-import CalendarGrid from './components/CalendarGrid/CalendarGrid.jsx';
-import EventModal from './components/EventModal/EventModal.jsx';
+import CalendarHeader from '../../components/EventCalendar/components/CalendarHeader/CalendarHeader.jsx';
+import CalendarGrid from '../../components/EventCalendar/components/CalendarGrid/CalendarGrid.jsx';
+import EventModal from '../../components/EventCalendar/components/EventModal/EventModal.jsx';
 import ErrorModal from '../common/ErrorModal/ErrorModal';
-import styles from './EventCalendar.module.css';
+import styles from './TrainerClassesCalendar.module.css';
 
 const EventCalendar = () => {
-  const {selectedCompany, isTrainer} = useAuth();
+  const {selectedCompany, staffMember, isTrainer} = useAuth();
   const companyId = selectedCompany?.id;
+  const staffMemberId = staffMember?.id;
   const [searchParams, setSearchParams] = useSearchParams();
 
   const monthParam = searchParams.get('month');
@@ -29,7 +30,7 @@ const EventCalendar = () => {
   }, [monthParam]);
 
   const [currentDate, setCurrentDate] = useState(getInitialDate);
-  const [schedules, setSchedules] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [eventTypes, setEventTypes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -124,8 +125,8 @@ const EventCalendar = () => {
   }, [setSearchParams]);
 
   useEffect(() => {
-    if (editParam && schedules.length > 0) {
-      const event = schedules.find(s => s.id === editParam);
+    if (editParam && classes.length > 0) {
+      const event = classes.find(s => s.id === editParam);
       if (event) {
         setSelectedEvent(event);
         setSelectedDate(new Date(event.startTime));
@@ -145,7 +146,7 @@ const EventCalendar = () => {
         setSelectedDate(null);
       }
     }
-  }, [editParam, dayParam, schedules]);
+  }, [editParam, dayParam, classes]);
 
   const fetchEventTypes = useCallback(async () => {
     if (!companyId) return;
@@ -157,39 +158,31 @@ const EventCalendar = () => {
     }
   }, [companyId]);
 
-  const fetchSchedules = useCallback(async () => {
-    if (!companyId) return;
+  const fetchTrainerClasses = useCallback(async () => {
+    if (!companyId || !staffMemberId) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      const params = {
-        page: 0,
-        pageSize: 400
-      };
-
-      if (eventTypeParam) {
-        params.eventTypeId = eventTypeParam;
-      }
-
-      const response = await eventScheduleApi.getAll(companyId, params);
-      setSchedules(response.data.items || []);
+      const response = await staffMemberApi.getEventSchedules(companyId, staffMemberId);
+      const data = response.data;
+      setClasses(data || []);
     } catch (err) {
       console.error('Error:', err);
       setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
-  }, [companyId, eventTypeParam]);
+  }, [companyId, staffMemberId]);
 
   useEffect(() => {
     fetchEventTypes();
   }, [fetchEventTypes]);
 
   useEffect(() => {
-    fetchSchedules();
-  }, [fetchSchedules]);
+    fetchTrainerClasses();
+  }, [fetchTrainerClasses]);
 
   useEffect(() => {
     if (!monthParam) {
@@ -205,15 +198,15 @@ const EventCalendar = () => {
   const eventsByDate = useMemo(() => {
     const grouped = {};
 
-    schedules.forEach(schedule => {
-      if (!schedule.startTime) return;
+    classes.forEach(cls => {
+      if (!cls.startTime) return;
 
-      const dateKey = formatDateKey(new Date(schedule.startTime));
+      const dateKey = formatDateKey(new Date(cls.startTime));
 
       if (!grouped[dateKey]) {
         grouped[dateKey] = [];
       }
-      grouped[dateKey].push(schedule);
+      grouped[dateKey].push(cls);
     });
 
     Object.keys(grouped).forEach(key => {
@@ -223,7 +216,7 @@ const EventCalendar = () => {
     });
 
     return grouped;
-  }, [schedules]);
+  }, [classes]);
 
   const eventDates = useMemo(() => Object.keys(eventsByDate), [eventsByDate]);
 
@@ -291,12 +284,12 @@ const EventCalendar = () => {
       };
 
       if (selectedEvent) {
-        await eventScheduleApi.update(companyId, selectedEvent.id, requestData);
+        await staffMemberApi.update(companyId, selectedEvent.id, requestData);
       } else {
-        await eventScheduleApi.create(companyId, requestData);
+        await staffMemberApi.create(companyId, requestData);
       }
 
-      await fetchSchedules();
+      await fetchTrainerClasses();
       closeModal();
     } catch (err) {
       throw err;
@@ -307,8 +300,8 @@ const EventCalendar = () => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
 
     try {
-      await eventScheduleApi.delete(companyId, eventId);
-      await fetchSchedules();
+      await staffMemberApi.removeFromEventSchedule(companyId, eventId);
+      await fetchTrainerClasses();
       closeModal();
     } catch (err) {
       setError(err.response?.data?.message || err.message);
@@ -323,7 +316,7 @@ const EventCalendar = () => {
 
   const clearError = () => setError(null);
 
-  if (loading && schedules.length === 0) {
+  if (loading && classes.length === 0) {
     return (
       <div className={styles.calendarLoading}>
         <div className="spinner"></div>
@@ -346,7 +339,7 @@ const EventCalendar = () => {
         onNextMonth={goToNextMonth}
         onToday={goToToday}
         eventsCount={eventsInCurrentMonth}
-        totalEvents={schedules.length}
+        totalEvents={classes.length}
         eventTypes={eventTypes}
         selectedEventTypeId={eventTypeParam}
         onEventTypeFilter={handleEventTypeFilter}
