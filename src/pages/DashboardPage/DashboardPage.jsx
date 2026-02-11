@@ -6,8 +6,8 @@ import DashboardOverview from '../../components/DashboardOverview/DashboardOverv
 import StaffMemberList from '../../components/StaffMemberList/StaffMemberList.jsx';
 import ReservationList from '../../components/ReservationList/ReservationList.jsx';
 import EventCalendar from '../../components/EventCalendar/EventCalendar.jsx';
-import TrainerClasses from '../../components/TrainerClasses/TrainerClasses.jsx';
-import TrainerAvailability from '../../components/TrainerAvailability/TrainerAvailability.jsx';
+import TrainerClassesCalendar from '../../components/TrainerClassesCalendar/TrainerClassesCalendar.jsx';
+import AvailabilityCalendar from '../../components/AvailabilityCalendar/AvailabilityCalendar.jsx';
 import EventTypeList from '../../components/EventTypeList/EventTypeList.jsx';
 import ParticipantList from '../../components/ParticipantList/ParticipantList.jsx';
 import SpecializationList from '../../components/SpecializationList/SpecializationList.jsx';
@@ -81,25 +81,18 @@ const DashboardPage = () => {
 
   const trainerTabs = [
     {
-      id: 'schedules',
-      path: '/dashboard/schedules',
-      label: 'Schedule',
-      icon: 'clock',
-      component: EventCalendar
-    },
-    {
       id: 'classes',
       path: '/dashboard/classes',
       label: 'Classes',
       icon: 'calendar',
-      component: TrainerAvailability
+      component: TrainerClassesCalendar
     },
     {
       id: 'availability',
       path: '/dashboard/availability',
       label: 'Availability',
       icon: 'availability',
-      component: TrainerAvailability
+      component: AvailabilityCalendar
     },
     {
       id: 'eventTypes',
@@ -340,10 +333,9 @@ const DashboardPage = () => {
               </Routes>
             ) : isTrainer() ? (
               <Routes>
-                <Route index element={<EventCalendar />} />
-                <Route path="schedules" element={<EventCalendar />} />
-                <Route path="classes" element={<TrainerClasses />}/>
-                <Route path="availability" element={<TrainerAvailability />}/>
+                <Route index element={<TrainerClassesCalendar />} />
+                <Route path="classes" element={<TrainerClassesCalendar />}/>
+                <Route path="availability" element={<AvailabilityCalendar />}/>
                 <Route path="eventTypes" element={<EventTypeList />} />
                 <Route path="specializations" element={<SpecializationList />} />
                 <Route path="settings" element={<CompanySettings />} />
